@@ -1,0 +1,146 @@
+name: pai_smart
+
+services:
+  mysql:
+    container_name: mysql
+    image: mysql:8
+    restart: always
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: PaiSmart2025
+      MYSQL_DATABASE: PaiSmart
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ../docs/ddl.sql:/docker-entrypoint-initdb.d/001-ddl.sql:ro
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --explicit_defaults_for_timestamp=true --lower_case_table_names=1
+    healthcheck:
+      start_period: 5s
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.2-alpine
+    container_name: redis
+    restart: always
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --bind 0.0.0.0 --port 6379 --requirepass PaiSmart2025 --appendonly yes
+    healthcheck:
+      start_period: 5s
+      test: [ "CMD", "redis-cli", "-a", "PaiSmart2025", "ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  pai-minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: pai-minio
+    restart: always
+    ports:
+      - "19000:9000"
+      - "19001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+
+  minio-init:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: minio-init
+    depends_on:
+      - pai-minio
+    entrypoint: >
+      sh -c " sleep 5; mc alias set local http://pai-minio:9000 minioadmin minioadmin && mc mb -p local/uploads || true "
+    restart: "no"
+
+  tika:
+    image: apache/tika:latest-full
+    container_name: tika-server
+    ports:
+      - "9998:9998"
+    restart: unless-stopped
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.2.1
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: unless-stopped
+
+  kafka:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.2.1
+    container_name: kafka-init
+    depends_on:
+      - kafka
+    entrypoint: >
+      sh -c " sleep 10; kafka-topics --create --if-not-exists --topic file-processing --bootstrap-server kafka:29092 || true; kafka-topics --create --if-not-exists --topic vectorization --bootstrap-server kafka:29092 || true; "
+    restart: "no"
+
+  es:
+    image: elasticsearch:8.10.4
+    container_name: es
+    restart: always
+    ports:
+      - "9200:9200"
+    environment:
+      - node.name=pai-smart-es01
+      - discovery.type=single-node
+      - xpack.license.self_generated.type=basic
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - cluster.name=pai-smart-es-cluster
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+    command: >
+      bash -c " if ! elasticsearch-plugin list | grep -q 'analysis-ik'; then
+        echo 'Installing analysis-ik plugin...';
+        elasticsearch-plugin install --batch https://release.infinilabs.com/analysis-ik/stable/elasticsearch-analysis-ik-8.10.4.zip;
+      else
+        echo 'analysis-ik plugin already installed.';
+      fi; /usr/local/bin/docker-entrypoint.sh "
+    healthcheck:
+      test: [ "CMD", "curl", "-s", "http://localhost:9200/_cluster/health?pretty" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql-data:
+  redis-data:
+  minio-data:
+  kafka-data:
+  es-data:
+
+
+networks:
+  default:
+    name: paismart-go-network

@@ -1,0 +1,1322 @@
+<!doctype html>
+<html lang="en" class="tw-dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>派聪明</title>
+    <meta name="description" content="派聪明是一款基于JAVA技术栈的RAG知识库项目" />
+    <link rel="shortcut icon" href="./assets/logo/logo.png" type="image/x-icon" />
+
+    <meta property="og:title" content="派聪明" />
+    <meta property="og:description" content="派聪明是一款基于JAVA技术栈的RAG知识库项目" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://github.com/itwanger/PaiSmart" />
+    <meta property="og:image" content="" />
+
+    <!-- <link rel="stylesheet" href="./css/tailwind-runtime.css" /> -->
+    <link rel="stylesheet" href="./css/tailwind.min.css">
+    <link rel="stylesheet" href="./css/index.css" />
+
+    <link rel="stylesheet" href="./css/bootstrap-icons.min.css" />
+</head>
+
+<body id="body"
+    class="tw-flex tw-min-h-[100vh] tw-flex-col tw-bg-[#fcfcfc] tw-text-black dark:tw-bg-black  dark:tw-text-white">
+
+    <header class="lg:tw-px-4 tw-max-w-[100vw] tw-max-w-lg:tw-mr-auto max-lg:tw-top-0 tw-fixed tw-top-4 lg:tw-left-1/2 lg:tw--translate-x-1/2 tw-z-20 tw-flex tw-h-[60px] tw-w-full 
+                    tw-text-gray-700 tw-bg-white-300 dark:tw-text-gray-200 dark:tw-bg-[#17181b50] tw-px-[3%] tw-rounded-md lg:tw-max-w-5xl tw-shadow-md dark:tw-shadow-gray-700
+                    lg:tw-justify-around lg:!tw-backdrop-blur-lg lg:tw-opacity-[0.99] tw-backdrop-blur">
+        <a class="tw-flex tw-p-[4px] tw-gap-2 tw-place-items-center" href="#">
+            <div class="tw-h-[50px] tw-max-w-[200px]">
+                <img src="./assets/logo/logo.png" alt="logo" class="tw-object-contain tw-h-full tw-w-full" />
+            </div>
+            <span class="tw-font-bold tw-whitespace-nowrap">派聪明</span>
+        </a>
+        <div class="collapsible-header animated-collapse max-lg:tw-shadow-md" id="collapsed-header-items">
+            <nav class="tw-relative tw-flex tw-h-full max-lg:tw-h-max tw-w-max tw-gap-5 tw-text-base max-lg:tw-mt-[30px] max-lg:tw-flex-col 
+                                max-lg:tw-gap-5 lg:tw-mx-auto tw-place-items-center">
+                <a class="header-links" href="#association"> 合作交流 </a>
+                <!-- <a class="header-links" href="#pricing"> 价格 </a> -->
+                <a class="header-links" href="https://www.yuque.com/itwanger/cxxbpw" target="_blank"> 文档 </a>
+                <a class="header-links" href="#rag"> 关于 </a>
+            </nav>
+            <div class="lg:tw-mx-4 tw-flex tw-place-items-center tw-gap-[20px] tw-text-base max-md:tw-w-full 
+                            max-md:tw-flex-col max-md:tw-place-content-center">
+                <button type="button" onclick="toggleMode()" class="header-links tw-text-gray-600 dark:tw-text-gray-300"
+                    title="toggle-theme" id="theme-toggle">
+                    <i class="bi bi-sun" id="toggle-mode-icon"></i>
+                </button>
+                <a id="github-star" href="https://github.com/itwanger/PaiSmart" target="_blank"
+                    class="header-links tw-flex tw-gap-3 tw-px-3 tw-py-2">
+                    <i class="bi bi-github"></i>
+                </a>
+            </div>
+        </div>
+        <button class="bi bi-list tw-absolute tw-right-3 tw-top-3 tw-z-50 tw-text-3xl tw-text-gray-500 lg:tw-hidden"
+            onclick="toggleHeader()" aria-label="menu" id="collapse-btn"></button>
+    </header>
+
+    <section
+        class="hero-section tw-relative tw-mt-20 tw-flex tw-min-h-[100vh] tw-w-full tw-max-w-[100vw] tw-flex-col tw-overflow-hidden max-lg:tw-mt-[100px]"
+        id="hero-section">
+        <div
+            class="hero-bg-gradient tw-relative tw-flex tw-h-full tw-min-h-[100vh] tw-w-full tw-flex-col tw-place-content-center tw-gap-6 tw-p-[5%] max-xl:tw-place-items-center max-lg:tw-p-4">
+            <!-- 粒子效果容器 -->
+            <div id="particles-js"></div>
+            <div
+                class="purple-bg-grad  reveal-up tw-absolute tw-left-1/2 tw--translate-1/2 tw-top-[10%] tw-h-[120px] tw-w-[120px]">
+            </div>
+
+            <div class="tw-flex tw-flex-col tw-min-h-[60vh] tw-place-content-center tw-items-center">
+                <h2 class="reveal-up tw-text-center tw-text-7xl tw-font-semibold tw-uppercase tw-leading-[90px] max-lg:tw-text-4xl max-md:tw-leading-snug
+                    tw-bg-clip-text tw-text-transparent tw-bg-gradient-to-br tw-from-[#646cff] tw-to-[#c258f5]">
+                    <span class="">基于java的rag</span>
+                    <br />
+                    <span>知识库项目</span>
+                </h2>
+                <div class="reveal-up tw-mt-8 tw-max-w-[500px] tw-text-lg max-lg:tw-text-base tw-p-2 tw-text-center
+                         tw-text-gray-600 dark:tw-text-gray-300 max-lg:tw-max-w-full">
+                    派聪明采用了检索增强生成（RAG）技术，通过简单的配置，即可轻松导入文档、构建索引、进行检索，帮助您打造出一个功能强大的智能问答系统。
+                </div>
+
+                <div class="reveal-up tw-mt-10 max-md:tw-flex-col tw-flex tw-place-items-center tw-gap-4">
+
+                    <a href="https://github.com/itwanger/PaiSmart" target="_blank" class="btn !tw-w-[170px] max-lg:!tw-w-[160px] !tw-rounded-xl !tw-py-4 max-lg:!tw-py-2 tw-flex tw-gap-2 tw-group !tw-bg-transparent !tw-text-black dark:!tw-text-white tw-transition-colors 
+                                        tw-duration-[0.3s] tw-border-[1px] tw-border-black dark:tw-border-white">
+
+                        <div class="tw-relative tw-flex tw-place-items-center tw-place-content-center tw-w-6 tw-h-6">
+                            <div
+                                class="tw-absolute tw-inset-0 tw-top-0 tw-left-0 tw-scale-0 tw-duration-300 group-hover:tw-scale-100 tw-border-2
+                                             tw-border-gray-600 dark:tw-border-gray-200 tw-rounded-full tw-w-full tw-h-full">
+                            </div>
+                            <span class="bi bi-github"></span>
+                        </div>
+                        <span>Github</span>
+                    </a>
+
+                    <a class="btn tw-group max-lg:!tw-w-[160px] tw-flex tw-gap-2 tw-shadow-lg !tw-w-[170px] !tw-rounded-xl !tw-py-4 max-lg:!tw-py-2 tw-transition-transform tw-duration-[0.3s] hover:tw-scale-x-[1.03] tw-bg-gradient-to-br tw-from-[#646cff] tw-to-[#c258f5]"
+                        href="#">
+                        <span>开始使用</span>
+                        <i class="bi bi-arrow-right group-hover:tw-translate-x-1 tw-duration-300"></i>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- prompt container -->
+            <div class="reveal-up  tw-relative tw-mt-8 tw-flex tw-w-full tw-place-content-center tw-place-items-center"
+                id="dashboard-container">
+                <div
+                    class="purple-bg-grad  reveal-up tw-absolute tw-left-1/2 tw--translate-x-1/2 tw-top-[5%] tw-h-[200px] tw-w-[200px]">
+                </div>
+
+                <div class="tw-relative tw-max-w-[80%] tw-bg-white dark:tw-bg-black tw-border-[1px] dark:tw-border-[#36393c] lg:tw-w-[1024px]
+                                lg:tw-h-[650px]  tw-flex tw-shadow-xl max-lg:tw-h-[450px] max-lg:tw-w-full
+                                tw-overflow-hidden
+                                tw-min-w-[320px] md:tw-w-full tw-min-h-[450px] tw-rounded-xl tw-bg-transparent max-md:tw-max-w-full"
+                    id="dashboard">
+
+                    <div
+                        class="purple-bg-grad tw-max-w-[80%] reveal-up tw-absolute tw-left-1/2 tw--translate-x-1/2 tw-top-[0%] lg:tw-max-w-[1000px] tw-h-full tw-w-full">
+                    </div>
+                    <div class="animated-border tw-w-full tw-h-full tw-p-[2px]">
+                        <div class="tw-w-full tw-h-full tw-rounded-xl tw-overflow-hidden tw-flex">
+
+                            <div class="tw-min-w-[250px] max-lg:tw-hidden tw-p-2 tw-gap-2 tw-flex tw-flex-col tw-bg-gray-100 
+                                            dark:tw-bg-[#171717] tw-h-full">
+                                <div
+                                    class="tw-h-[30px] tw-w-full tw-max-w-[250px] tw-flex tw-gap-2 tw-place-items-center tw-justify-center">
+                                    <img src="./assets/logo/logo.png" alt="logo"
+                                        class="tw-object-contain tw-opacity-80 tw-h-full" />
+                                    <span class="tw-font-bold tw-whitespace-nowrap tw-text-[#646cff]">派聪明</span>
+                                </div>
+
+                                <div class="tw-flex tw-mt-2 tw-gap-2 tw-flex-col">
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/chat.svg" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>聊天助手</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/chat-history.svg" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>聊天记录</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/knowledge-base.svg" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>知识库</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/org-tag.svg" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>组织标签</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/user.svg" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>用户管理</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="./assets/images/icon/personal-center.svg" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>个人中心</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="tw-flex tw-w-full tw-p-4 tw-bg-white dark:tw-bg-black tw-h-full tw-flex-col"
+                                id="pixa-playground">
+                                <div class="tw-relative tw-w-full tw-flex tw-place-content-center tw-h-full">
+                                    <div
+                                        class="tw-absolute tw-top-[40%] max-lg:tw-top-[40%] tw-left-1/2 tw--translate-x-1/2  tw-w-[150px] tw-h-[150px]">
+                                        <img src="./assets/logo/logo.png"
+                                            class="tw-w-full tw-h-full tw-object-contain tw-opacity-20"
+                                            alt="PaiSmart logo">
+                                    </div>
+                                    <div class="prompt-container tw-overflow-y-auto tw-px-[5%] max-lg:tw-px-2 scrollbar max-lg:tw-max-h-[80%] tw-max-h-[550px] 
+                                                    max-lg:tw-mt-12 tw-w-full tw-h-full tw-z-10 tw-flex tw-flex-col"
+                                        id="prompt-container">
+                                        <div
+                                            class="tw-w-full tw-flex tw-text-center tw-flex-col tw-place-content-center">
+                                            <h2 class="tw-text-2xl max-md:tw-text-2xl max-md:tw-mt-3 tw-opacity-80">
+                                                聊天助手
+                                            </h2>
+                                            <div class="tw-inline tw-mt-6 max-md:tw-mt-3">
+                                                <span id="prompts-sample"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <form action="" id="prompt-form" onsubmit="return false;"
+                                    class="tw-place-content-center tw-mt-auto tw-h-[50px] tw-p-1 tw-place-items-center 
+                                                tw-justify-around tw-flex tw-gap-1 tw-bottom-2 tw-w-full tw-rounded-md tw-bg-[#f3f4f6] dark:tw-bg-[#171717]">
+                                    <input placeholder="给 派聪明 发送消息" type="text"
+                                        class="tw-p-2 !tw-outline-none tw-bg-transparent tw-border-none tw-w-full tw-placehoder-gray-500
+                                                                    dark:tw-placeholder-opacity-60 dark:tw-placeholder-gray-300 tw-max-w-[80%] tw-h-full"
+                                        name="prompt">
+                                    <button class="btn !tw-bg-[#6366f1] !tw-p-2 !tw-px-3 !tw-text-white">
+                                        <img src="./assets/images/icon/send.svg" alt="send" class="tw-h-5 tw-w-5" />
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="tw-relative tw-flex tw-w-full tw-max-w-[100vw] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden tw-p-8">
+        <h2 class="reveal-up tw-text-3xl max-md:tw-text-xl">
+            丰富的技术栈
+        </h2>
+
+        <div class="reveal-up carousel-container">
+            <div class="carousel lg:w-place-content-center tw-mt-10 tw-flex tw-w-full tw-gap-5 max-md:tw-gap-2">
+                <div class="carousel-img reveal-up">
+                    <img src="./assets/images/brand-logos/mysql.svg" alt="MySQL"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">MySQL</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="./assets/images/brand-logos/redis.svg" alt="Redis"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Redis</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="./assets/images/brand-logos/minio.svg" alt="MinIO"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">MinIO</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="./assets/images/brand-logos/kafka.svg" alt="Kafka"
+                        class="tw-h-full tw-object-contain tw-transition-colors tw-hidden dark:tw-block" srcset="" />
+                    <img src="./assets/images/brand-logos/kafka-light.svg" alt="Kafka"
+                        class="tw-h-full tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Kafka</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="./assets/images/brand-logos/es.svg" alt="Elasticsearch"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Elasticsearch</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[100vh] max-lg:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full  tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[900px] tw-gap-4 tw-p-4">
+            <div class="purple-bg-grad  reveal-up tw-absolute tw-right-[20%] tw-top-[20%] tw-h-[200px] tw-w-[200px]">
+            </div>
+            <h2 class="reveal-up tw-text-6xl max-lg:tw-text-4xl tw-text-center tw-leading-normal tw-uppercase">
+
+                <span class="tw-font-semibold">构建你自己专属的 </span>
+                <br>
+                <span class="tw-font-serif">RAG知识库应用</span>
+            </h2>
+            <p
+                class="reveal-up tw-mt-8 tw-max-w-[650px] tw-text-gray-900 dark:tw-text-gray-200 tw-text-center max-md:tw-text-sm">
+                通过上传您的文档（支持 PDF、DOC、DOCX 和 TXT 格式），我们的系统会自动为您构建专属的知识库。基于先进的 RAG（检索增强生成）技术，系统会智能分析文档内容，建立语义索引，让 AI
+                能够准确理解文档上下文，并针对您的专业问题提供精准的解答。无论是技术文档、研究报告还是业务资料，都能轻松转化为智能知识助手。
+            </p>
+        </div>
+    </section>
+
+    <section class="tw-relative tw-w-full tw-flex tw-flex-col tw-place-content-center tw-place-items-center">
+        <div class="reveal-up tw-mt-5 tw-flex tw-flex-col tw-gap-3 tw-text-center">
+            <h2 class="tw-text-6xl tw-font-medium max-md:tw-text-3xl tw-p-2">
+                支持众多的AI模型
+            </h2>
+        </div>
+        <div
+            class="tw-w-[80vw] tw-max-w-[70vw] tw-mt-20 tw-flex tw-gap-x-14 tw-gap-y-10 tw-items-center tw-flex-wrap tw-justify-center">
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/deepseek.svg" alt="DeepSeek"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">DeepSeek</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/qwen.svg" alt="Qwen"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">通义千问</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/openai.svg" alt="OpenAI"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="./assets/images/brand-logos/openai.webp" alt="OpenAI"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">OpenAI</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/kimi.svg" alt="Kimi"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="./assets/images/brand-logos/kimi.webp" alt="Kimi"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Kimi</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/doubao.svg" alt="Doubao"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">豆包</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/wenxin.svg" alt="Wenxin"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">文心一言</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/anthropic.svg" alt="Anthropic"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="./assets/images/brand-logos/anthropic.webp" alt="Anthropic"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Anthropic</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/chatglm.svg" alt="ChatGLM"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">ChatGLM</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/claude.svg" alt="Claude"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Claude</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/gemini.svg" alt="Gemini"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Gemini</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/meta-color.svg" alt="Meta"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Meta</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/mistral.svg" alt="Mistral"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Mistral</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/ollama.svg" alt="Ollama"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="./assets/images/brand-logos/ollama.webp" alt="Ollama"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Ollama</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="./assets/images/brand-logos/spark.svg" alt="Spark"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Spark</span>
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="tw-relative tw-mt-10 tw-flex tw-min-h-[100vh] tw-w-full tw-max-w-[100vw] tw-flex-col tw-place-items-center lg:tw-p-6">
+
+        <div class="reveal-up tw-mt-[5%] tw-flex tw-h-full tw-w-full tw-place-content-center 
+                        tw-gap-2 tw-p-4 max-lg:tw-max-w-full max-lg:tw-flex-col">
+
+            <div class="tw-relative tw-flex tw-max-w-[30%] max-lg:tw-max-w-full tw-flex-col 
+                            tw-place-items-start tw-gap-4  tw-p-2 max-lg:tw-place-items-center 
+                            max-lg:tw-place-content-center max-lg:tw-w-full">
+                <div
+                    class="tw-top-40 tw-flex tw-flex-col lg:tw-sticky tw-place-items-center tw-max-h-fit tw-max-w-[850px] max-lg:tw-max-h-fit max-lg:tw-max-w-[320px] tw-overflow-hidden">
+                    <h2 class="tw-text-5xl tw-font-serif tw-text-center tw-font-medium  max-md:tw-text-3xl">
+                        完善的知识库流程
+                    </h2>
+                </div>
+
+                <div
+                    class="purple-bg-grad reveal-up lg:tw-sticky tw-top-[30%] tw-left-[20%] tw-h-[150px] tw-w-[150px] tw-rounded-full">
+                </div>
+            </div>
+
+            <div class="tw-flex tw-flex-col tw-gap-10 tw-h-full tw-max-w-1/2 max-lg:tw-max-w-full tw-px-[10%]
+                             max-lg:tw-px-4 max-lg:tw-gap-3 max-lg:tw-w-full lg:tw-top-[20%]
+                             tw-place-items-center
+                             ">
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all
+                                  tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                上传文档
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                支持多种格式文档上传，包括PDF、Word、Txt等常用文档格式。通过简单的点击即可完成文档上传，为知识库建设提供便捷的数据输入方式。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl
+                                 hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-upc-scan"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                提取分割文档
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会自动对上传的文档进行智能分析和分割，将长文本拆分成适当大小的片段。这种分割方式既保持了文本的语义完整性，又能确保后续处理的准确性和效率。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl hover:tw-shadow-lg tw-duration-300 
+                                tw-transition-all dark:tw-shadow-[#171717] tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-credit-card-2-front"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                文本向量化
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统采用先进的向量化技术，将文本内容转换为高维向量表示。这种转换保留了文本的语义信息，使得后续的相似度计算和检索更加准确和高效。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full dark:tw-shadow-[#171717] tw-h-full tw-gap-8 tw-rounded-xl  hover:tw-shadow-lg tw-duration-300 
+                            tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-menu-down"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                问题向量化
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会将用户输入的问题同样转换为向量形式，这种转换确保了问题和文档片段之间的语义匹配更加准确，从而能够找到最相关的答案。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl dark:tw-shadow-[#171717] hover:tw-shadow-lg tw-duration-300 
+                                tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-shadows"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                混合检索
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统采用混合检索策略，结合关键词匹配和语义相似度计算，从而在保证检索准确性的同时提高检索效率，为用户提供最相关的答案。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-inboxes"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                获取提示词
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会根据用户的输入内容，自动生成相应的提示词，这些提示词将用于引导大模型生成更加准确和相关的回答。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-cookie"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                提交大模型
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统将用户的输入内容和生成的提示词提交给大模型，通过优化的提示工程技术，引导大模型生成高质量的回答。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-text-wrap"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                输出结果
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会根据大模型生成的结果，以用户友好的方式展示输出内容，包括文本、图像等多种形式的信息展示。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div
+            class="purple-bg-grad reveal-up tw-absolute tw-bottom-[40%] tw-right-[20%] tw-h-[200px] tw-w-[200px] tw-rounded-full ">
+        </div>
+    </section>
+
+
+    <section
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[110vh] max-md:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full max-lg:tw-max-w-full tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                丰富的功能
+            </h3>
+
+            <div
+                class="tw-mt-8 tw-relative tw-gap-10 tw-p-4 tw-grid tw-place-items-center tw-grid-cols-3 max-lg:tw-flex max-lg:tw-flex-col">
+
+
+                <div
+                    class="reveal-up  tw-w-[350px] tw-border-[1px] tw-h-[400px] tw-rounded-md tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] max-md:tw-w-[320px] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/chat.png" alt="Prompt library"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        聊天助手
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        基于大语言模型和RAG技术的智能对话助手，可以结合您的知识库进行对话，让大模型更懂你的需求，使您的工作效率倍增。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/chat-history.png" alt="Multilingual"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        聊天记录
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        支持聊天记录查看，通过日期和内容进行筛选，方便用户进行历史记录的查看和分析。
+                    </p>
+                </div>
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-md tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/knowledge-base.png" alt="knowledge-base"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        知识库管理
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        提供完整的知识库管理功能，包括文档上传、内容提取、向量化存储等。支持多种格式文档导入，自动建立索引，让您的知识资产得到高效管理和利用。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/org-tag.png" alt="org-tag"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        组织标签
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        通过组织标签进行知识库和数据权限分类管理，支持多级标签体系，方便用户进行数据筛选和权限控制。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                     tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/user.png" alt="user"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        用户管理
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        采用基于角色的权限管理，支持多级管理员和用户权限设置，确保数据安全和隐私保护。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="./assets/images/home/personal.png" alt="personal"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        个人中心
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        展示用户组织标签，支持默认标签管理，支持用户信息修改。
+                    </p>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="rag"
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[100vh] max-md:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full max-lg:tw-max-w-full tw-place-content-center tw-place-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                检索增强生成
+            </h3>
+            <p class="reveal-up tw-mt-3 tw-max-w-[800px] tw-text-center ">
+                检索增强生成（RAG）是一种先进的AI技术，它结合了检索和生成两种方法，以实现更准确和相关的回答。
+                传统的检索方法通常只能返回与查询关键词匹配的文档片段，而生成方法则需要大模型根据查询内容生成回答。
+                检索增强生成技术通过结合这两种方法，实现了更准确和相关的回答。
+                首先，系统会根据用户的查询内容，从知识库中检索出最相关的文档片段。
+                然后，系统会使用大模型根据检索出的文档片段生成回答。
+                这种方法不仅能够实现更准确和相关的回答，还能够提高回答的效率和质量。
+            </p>
+
+            <div class="tw-mt-8 tw-relative tw-flex max-lg:tw-flex-col tw-gap-5">
+
+                <div
+                    class="reveal-up tw-flex tw-w-full max-md:tw-max-w-full tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-2 tw-shadow-xl max-lg:tw-w-[320px] ">
+                    <img src="./assets/images/home/vector-database.png" alt="vector-database"
+                        class="tw-max-w-[650px] tw-max-h-[400px] tw-object-center">
+                </div>
+
+                <div
+                    class="reveal-up tw-flex tw-w-full tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-2 tw-shadow-xl max-lg:tw-w-[320px]">
+                    <img src="./assets/images/home/rag.png" alt="rag"
+                        class="tw-max-w-[650px] tw-max-h-[400px] tw-object-center">
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- 
+    <section
+        class="tw-flex tw-min-h-[100vh] tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-p-[2%]">
+        <h3 class="reveal-up tw-text-4xl tw-font-medium tw-text-center max-md:tw-text-2xl">
+            Join the professionals using Pixa
+        </h3>
+        <div class="tw-mt-20 tw-gap-10 tw-space-y-8  max-md:tw-columns-1 lg:tw-columns-2 xl:tw-columns-3">
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man2.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Mante</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Glu, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam dolore deleniti
+                    iusto Numquam!
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/women.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="women" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Trich B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">AMI, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem ipsum dolor sit amet.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">John B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Benz, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea, expedita nihil repellendus accusamus
+                    itaque facere labore, suscipit tempore in harum repellat. Doloribus, dolor facere dolorem impedit
+                    facilis rerum beatae exercitationem aliquid porro ea architecto similique illo omnis odio
+                    consequatur modi.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man2.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Ben Alfert B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">XZ tech, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/women.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="women" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Rachel</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Gem, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem, ipsum dolor.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Jamie</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">SnapFist.ai, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est, nihil vitae fuga ab reiciendis optio
+                    et corporis dolorem alias deserunt, molestias in iusto! Ratione, quisquam incidunt. Reprehenderit
+                    ipsam officiis enim.
+                </p>
+            </div>
+
+        </div>
+    </section> -->
+
+    <!-- 
+    <section class="tw-mt-5 tw-flex tw-w-full tw-flex-col tw-gap-6 tw-place-items-center tw-p-[2%]" id="pricing">
+        <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-2xl">
+            不同的付费方案
+        </h3>
+        <div class="tw-mt-10 tw-flex tw-flex-wrap tw-place-content-center tw-gap-8 max-lg:tw-flex-col">
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl tw-font-semibold">￥9</span>
+                    <span class="tw-text-2xl tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-100">
+                    Essential AI tools for everyday use
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4 tw-text-base tw-text-gray-800 dark:tw-text-gray-200">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>1,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>30 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>10 premium music generation</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#" class="btn tw-mt-auto !tw-w-full tw-transition-transform tw-duration-[0.3s] 
+                                hover:tw-scale-x-[1.02] !tw-text-black !tw-bg-transparent !tw-border-[1px]
+                                 tw-border-black dark:tw-border-white dark:!tw-text-white">
+                    Choose plan
+                </a>
+            </div>
+
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-2
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#595858] tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl  tw-font-semibold">￥17</span>
+                    <span class="tw-text-2xl max-md:tw-text-xl  tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-200">
+                    Advanced features for serious AI enthusiasts.
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4  tw-text-base tw-text-gray-800 dark:tw-text-gray-100">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>5,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>100 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>40 premium music generation</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#"
+                    class="btn tw-mt-auto !tw-w-full tw-transition-transform tw-duration-[0.3s] hover:tw-scale-x-[1.02]">
+                    Choose plan
+                </a>
+            </div>
+
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-bg-white tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl tw-font-semibold">￥29</span>
+                    <span class="tw-text-2xl tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-100">
+                    Unlimited potential for power users
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4 tw-text-base 
+                                tw-text-gray-800 dark:tw-text-gray-200">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>10,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>300 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>100 premium music generations</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill "></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#" class="btn tw-mt-8 !tw-w-full tw-transition-transform tw-duration-[0.3s] 
+                                hover:tw-scale-x-[1.02] !tw-text-black !tw-bg-transparent 
+                                !tw-border-[1px] tw-border-black dark:tw-border-white dark:!tw-text-white">
+                    Choose plan
+                </a>
+            </div>
+        </div>
+    </section> -->
+
+    <section id="association"
+        class="tw-mt-5 tw-flex tw-min-h-[80vh] tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-p-[2%] max-lg:tw-p-3">
+        <h3 class="reveal-up tw-text-4xl tw-font-medium max-md:tw-text-2xl">
+            活跃的社区支持 ✨
+        </h3>
+        <!-- articles -->
+
+        <div class="reveal-up tw-mt-10 tw-flex tw-flex-wrap tw-place-content-center tw-gap-10 max-lg:tw-flex-col">
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="./assets/images/home/weixin.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        专属的VIP微信社群
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    和数千名二哥好友一起交流学习
+                </h3>
+
+            </a>
+
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="./assets/images/home/zsxq.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        活跃的星球社区
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    获得二哥专属的VIP服务
+                </h3>
+
+            </a>
+
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="./assets/images/home/paicoding.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        丰富的项目支持
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    学习不同技术栈的实战项目
+                </h3>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <section
+        class="tw-relative tw-flex tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-gap-[10%] tw-p-[5%] tw-px-[10%]">
+
+
+        <h3 class="tw-text-4xl tw-font-medium max-md:tw-text-2xl">
+            常见问题
+        </h3>
+        <div class="tw-mt-5 tw-flex tw-min-h-[300px] tw-w-full tw-max-w-[850px] tw-flex-col tw-gap-4">
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明RAG知识库是什么？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    派聪明源自于技术派又独立于技术派，主打的服务是利用 RAG 技术和 AI 大模型进行聊天对话。派聪明通过 RAG
+                    技术将用户的知识库与大语言模型结合，让用户可以基于自己的知识进行智能对话。用户可以轻松上传文档、网页等内容构建知识库，系统会自动处理并建立索引，让 AI 可以准确理解和回答相关问题。
+                </div>
+            </div>
+            <hr>
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明能让大家学到什么？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    通过派聪明，你可以学习到 大模型应用的开发落地经验、主流的企业级Java技术栈，提高自身对于RAG技术、AI大模型、知识库构建、智能对话等技术的综合应用能力。
+                </div>
+            </div>
+            <hr>
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明如何写到简历上？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    对于初学者，在简历上可以突出以下几点：1. 项目完整的设计与实现过程，包括需求分析、技术选型、架构设计等；2. 作为练手项目的具体收获，如RAG技术的实践经验、大模型应用开发等；3.
+                    项目实际部署和应用场景，比如为班级或实验室搭建私有知识库，解决了哪些实际问题。通过这些要点，展现自己的技术能力和项目经验。
+                </div>
+            </div>
+            <hr>
+
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明包含哪些功能模块？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    派聪明主要包含有聊天助手、聊天记录、知识库、组织标签、用户管理、个人中心等功能模块。相关功能的实现即涵盖了基础的Java技术栈，又包含了RAG知识库的构建与应用。
+                </div>
+            </div>
+            <hr>
+
+        </div>
+        <div
+            class="purple-bg-grad reveal-up tw-absolute tw-bottom-14 tw-right-[20%] tw-h-[150px] tw-w-[150px] tw-rounded-full">
+        </div>
+
+    </section>
+    <!-- 
+    <section
+        class="tw-relative tw-flex tw-p-2  tw-w-full tw-min-h-[60vh]  tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="reveal-up tw-w-full tw-h-full tw-min-h-[450px] max-lg:tw-max-w-full tw-rounded-md lg:tw-py-[5%] tw-bg-[#f6f7fb] dark:tw-bg-[#171717] tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                Access and compare multiple AI models
+            </h3>
+
+            <div class="tw-mt-8 tw-relative tw-flex max-lg:tw-flex-col tw-gap-5">
+
+                <a href="#" class="btn  reveal-up !tw-rounded-full !tw-p-4 tw-font-medium">
+                    Launch Playground
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <section
+        class="tw-flex tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-gap-[10%] tw-p-[5%] tw-px-[10%] max-md:tw-px-2">
+        <div
+            class="tw-flex tw-w-full tw-max-w-[80%] tw-place-content-center tw-place-items-center tw-justify-between tw-gap-3 
+                        tw-rounded-lg tw-bg-[#F6F7FB] dark:tw-bg-[#171717] tw-p-6 max-md:tw-max-w-full max-md:tw-flex-col">
+            <div class="tw-flex tw-flex-col max-lg:tw-text-center tw-gap-1">
+                <h2 class="tw-text-2xl tw-text-gray-800 dark:tw-text-gray-200 max-md:tw-text-xl">
+                    Join our newsletter
+                </h2>
+                <div class="tw-text-gray-700 dark:tw-text-gray-300">Get product insights and updates.</div>
+            </div>
+
+            <div class="tw-flex tw-h-[60px] tw-place-items-center tw-gap-2 tw-overflow-hidden tw-p-2">
+                <input type="email" class="input tw-h-full tw-w-full !tw-border-gray-600 tw-p-2 tw-outline-none"
+                    placeholder="email" />
+                <a class="btn !tw-rounded-full !tw-border-[1px] !tw-text-black !tw-border-solid !tw-border-black  dark:!tw-text-white
+                            dark:!tw-border-gray-300 !tw-bg-transparent tw-transition-colors tw-duration-[0.3s]"
+                    href="">
+                    Signup
+                </a>
+            </div>
+        </div>
+    </section> -->
+
+    <footer class="tw-mt-auto tw-flex tw-flex-col tw-w-full tw-gap-4 tw-text-sm tw-pt-[5%] tw-pb-10 tw-px-[10%] 
+                    tw-text-black dark:tw-text-white max-md:tw-flex-col">
+        <div class="tw-flex max-md:tw-flex-col max-md:tw-gap-6 tw-gap-3 tw-w-full tw-place-content-around">
+            <div class="tw-flex tw-h-full tw-w-[250px] tw-flex-col tw-place-items-center tw-gap-6 max-md:tw-w-full">
+                <a href="#" class="tw-w-full tw-place-items-center tw-flex tw-flex-col tw-gap-4">
+                    <img src="./assets/logo/logo.png" alt="logo" srcset="" class="tw-max-w-[120px]" />
+                    <div class="tw-max-w-[250px] tw-text-center tw-text-3xl tw-h-fit">
+                        派聪明
+                    </div>
+                </a>
+            </div>
+
+            <div class="tw-flex max-md:tw-flex-col tw-flex-wrap tw-gap-6 tw-h-full tw-w-full tw-justify-around">
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">项目</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://github.com/itwanger" class="footer-link">GitHub</a>
+                        <a href="https://paicoding.com/" class="footer-link">PaiCoding</a>
+                        <a href="https://github.com/laigeoffer/pmhub" class="footer-link">PmHub</a>
+                        <a href="https://github.com/itwanger/toBeBetterJavaer" class="footer-link">ToBeBetterJavaer</a>
+                    </div>
+                </div>
+
+
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">资源</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://www.deepseek.com/" class="footer-link">DeepSeek</a>
+                        <a href="https://www.tongyi.com/" class="footer-link">通义千问</a>
+                        <a href="https://www.doubao.com/" class="footer-link">豆包</a>
+                        <a href="https://openai.com/" class="footer-link">OpenAI</a>
+                    </div>
+                </div>
+
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">其他</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://wx.zsxq.com/group/15522885221412" class="footer-link" target="_blank">知识星球</a>
+                        <a href="#" class="footer-link">微信：qing_gee</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="tw-mt-8">
+        <div class="tw-mt-2 tw-flex tw-gap-2 tw-flex-col tw-text-gray-700 dark:tw-text-gray-300 tw-place-items-center 
+                    tw-text-[14px] tw-w-full tw-text-center tw-place-content-around">
+            <span>Copyright &#169; 2025 Pai Smart. All Rights Reserved.</span>
+        </div>
+    </footer>
+</body>
+
+<script src="/js/gsap.min.js"></script>
+<script src="/js/ScrollTrigger.min.js"></script>
+<script src="/js/typed.min.js"></script>
+<script src="/js/particles.min.js"></script>
+
+<script src="./scripts/particles.js" type="module"></script>
+<script src="./scripts/components.js" type="module"></script>
+<script src="./index.js" type="module"></script>
+
+
+<script>
+    // 本地缓存相关函数
+    function saveStarsToCache(starsCount) {
+        try {
+            const cacheData = {
+                count: starsCount,
+                timestamp: Date.now()
+            }
+            localStorage.setItem('github-stars-cache', JSON.stringify(cacheData))
+        } catch (error) {
+            console.error('Failed to save stars to cache:', error)
+        }
+    }
+
+    function getStarsFromCache() {
+        try {
+            const cached = localStorage.getItem('github-stars-cache')
+            if (!cached) return null
+
+            const cacheData = JSON.parse(cached)
+            const now = Date.now()
+            const cacheAge = now - cacheData.timestamp
+            const maxAge = 1 * 60 * 60 * 1000 // 1小时缓存
+
+            // 如果缓存未过期，返回缓存的数据
+            if (cacheAge < maxAge) {
+                return cacheData.count
+            }
+
+            // 缓存过期，删除缓存
+            localStorage.removeItem('github-stars-cache')
+            return null
+        } catch (error) {
+            console.error('Failed to get stars from cache:', error)
+            return null
+        }
+    }
+
+    function updateStarsDisplay(starsCount) {
+        const githubStar = document.getElementById('github-star')
+        if (!githubStar.querySelector('.stars-count')) {
+            githubStar.insertAdjacentHTML('beforeend', `<span>starred<span class="stars-count tw-ml-1">${starsCount}</span></span>`)
+        }
+    }
+
+    async function fetchGitHubStars() {
+        try {
+            // 首先尝试从缓存获取数据
+            const cachedStars = getStarsFromCache()
+            if (cachedStars !== null) {
+                updateStarsDisplay(cachedStars)
+                console.log('Using cached stars count:', cachedStars)
+            }
+
+            // 无论是否有缓存，都尝试从API获取最新数据
+            const response = await fetch('https://api.github.com/repos/itwanger/PaiSmart')
+            if (!response.ok) throw new Error('Network response was not ok')
+            const data = await response.json()
+
+            // 更新显示
+            updateStarsDisplay(data.stargazers_count)
+
+            // 保存到缓存
+            saveStarsToCache(data.stargazers_count)
+
+            console.log('Updated stars count from API:', data.stargazers_count)
+        } catch (error) {
+            console.error('Failed to fetch GitHub stars:', error)
+
+            // 如果API请求失败且没有缓存，显示默认值
+            const cachedStars = getStarsFromCache()
+            if (cachedStars === null) {
+                updateStarsDisplay('0')
+            }
+        }
+    }
+
+    // 页面加载后自动调用
+    document.addEventListener('DOMContentLoaded', fetchGitHubStars);
+</script>
+
+</html>

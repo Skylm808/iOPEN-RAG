@@ -1,0 +1,1319 @@
+<!doctype html>
+<html lang="en" class="tw-dark">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>派聪明</title>
+    <meta name="description" content="派聪明是一款基于JAVA技术栈的RAG知识库项目" />
+    <link rel="shortcut icon" href="/images/logo-CjZN1zaF.png" type="image/x-icon" />
+
+    <meta property="og:title" content="派聪明" />
+    <meta property="og:description" content="派聪明是一款基于JAVA技术栈的RAG知识库项目" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://github.com/itwanger/PaiSmart" />
+    <meta property="og:image" content="" />
+
+    <!-- <link rel="stylesheet" href="./css/tailwind-runtime.css" /> -->
+
+  <script type="module" crossorigin src="/js/main-C-7uXje-.js"></script>
+  <link rel="stylesheet" crossorigin href="/css/main-BxK5Z1k8.css">
+</head>
+
+<body id="body"
+    class="tw-flex tw-min-h-[100vh] tw-flex-col tw-bg-[#fcfcfc] tw-text-black dark:tw-bg-black  dark:tw-text-white">
+
+    <header class="lg:tw-px-4 tw-max-w-[100vw] tw-max-w-lg:tw-mr-auto max-lg:tw-top-0 tw-fixed tw-top-4 lg:tw-left-1/2 lg:tw--translate-x-1/2 tw-z-20 tw-flex tw-h-[60px] tw-w-full 
+                    tw-text-gray-700 tw-bg-white-300 dark:tw-text-gray-200 dark:tw-bg-[#17181b50] tw-px-[3%] tw-rounded-md lg:tw-max-w-5xl tw-shadow-md dark:tw-shadow-gray-700
+                    lg:tw-justify-around lg:!tw-backdrop-blur-lg lg:tw-opacity-[0.99] tw-backdrop-blur">
+        <a class="tw-flex tw-p-[4px] tw-gap-2 tw-place-items-center" href="#">
+            <div class="tw-h-[50px] tw-max-w-[200px]">
+                <img src="data:image/png;base64,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" alt="logo" class="tw-object-contain tw-h-full tw-w-full" />
+            </div>
+            <span class="tw-font-bold tw-whitespace-nowrap">派聪明</span>
+        </a>
+        <div class="collapsible-header animated-collapse max-lg:tw-shadow-md" id="collapsed-header-items">
+            <nav class="tw-relative tw-flex tw-h-full max-lg:tw-h-max tw-w-max tw-gap-5 tw-text-base max-lg:tw-mt-[30px] max-lg:tw-flex-col 
+                                max-lg:tw-gap-5 lg:tw-mx-auto tw-place-items-center">
+                <a class="header-links" href="#association"> 合作交流 </a>
+                <a class="header-links" href="#rag"> 关于 </a>
+                <!-- <a class="header-links" href="#pricing"> 价格 </a> -->
+                <a class="header-links" href="https://www.yuque.com/itwanger/cxxbpw" target="_blank"> 文档 </a>
+
+            </nav>
+            <div class="lg:tw-mx-4 tw-flex tw-place-items-center tw-gap-[20px] tw-text-base max-md:tw-w-full 
+                            max-md:tw-flex-col max-md:tw-place-content-center">
+                <button type="button" onclick="toggleMode()" class="header-links tw-text-gray-600 dark:tw-text-gray-300"
+                    title="toggle-theme" id="theme-toggle">
+                    <i class="bi bi-sun" id="toggle-mode-icon"></i>
+                </button>
+                <a id="github-star" href="https://github.com/itwanger/PaiSmart" target="_blank"
+                    class="header-links tw-flex tw-gap-3 tw-px-3 tw-py-2">
+                    <i class="bi bi-github"></i>
+                </a>
+            </div>
+        </div>
+        <button class="bi bi-list tw-absolute tw-right-3 tw-top-3 tw-z-50 tw-text-3xl tw-text-gray-500 lg:tw-hidden"
+            onclick="toggleHeader()" aria-label="menu" id="collapse-btn"></button>
+    </header>
+
+    <section
+        class="hero-section tw-relative tw-mt-20 tw-flex tw-min-h-[100vh] tw-w-full tw-max-w-[100vw] tw-flex-col tw-overflow-hidden max-lg:tw-mt-[100px]"
+        id="hero-section">
+        <div
+            class="hero-bg-gradient tw-relative tw-flex tw-h-full tw-min-h-[100vh] tw-w-full tw-flex-col tw-place-content-center tw-gap-6 tw-p-[5%] max-xl:tw-place-items-center max-lg:tw-p-4">
+            <!-- 粒子效果容器 -->
+            <div id="particles-js"></div>
+            <div
+                class="purple-bg-grad  reveal-up tw-absolute tw-left-1/2 tw--translate-1/2 tw-top-[10%] tw-h-[120px] tw-w-[120px]">
+            </div>
+
+            <div class="tw-flex tw-flex-col tw-min-h-[60vh] tw-place-content-center tw-items-center">
+                <h2 class="reveal-up tw-text-center tw-text-7xl tw-font-semibold tw-uppercase tw-leading-[90px] max-lg:tw-text-4xl max-md:tw-leading-snug
+                    tw-bg-clip-text tw-text-transparent tw-bg-gradient-to-br tw-from-[#646cff] tw-to-[#c258f5]">
+                    <span class="">基于java的rag</span>
+                    <br />
+                    <span>知识库项目</span>
+                </h2>
+                <div class="reveal-up tw-mt-8 tw-max-w-[500px] tw-text-lg max-lg:tw-text-base tw-p-2 tw-text-center
+                         tw-text-gray-600 dark:tw-text-gray-300 max-lg:tw-max-w-full">
+                    派聪明采用了检索增强生成（RAG）技术，通过简单的配置，即可轻松导入文档、构建索引、进行检索，帮助您打造出一个功能强大的智能问答系统。
+                </div>
+
+                <div class="reveal-up tw-mt-10 max-md:tw-flex-col tw-flex tw-place-items-center tw-gap-4">
+
+                    <button onclick="openVideo()" class="btn !tw-w-[170px] max-lg:!tw-w-[160px] !tw-rounded-xl !tw-py-4 max-lg:!tw-py-2 tw-flex tw-gap-2 tw-group !tw-bg-transparent !tw-text-black dark:!tw-text-white tw-transition-colors 
+                                        tw-duration-[0.3s] tw-border-[1px] tw-border-black dark:tw-border-white">
+
+                        <div class="tw-relative tw-flex tw-place-items-center tw-place-content-center tw-w-6 tw-h-6">
+                            <div
+                                class="tw-absolute tw-inset-0 tw-top-0 tw-left-0 tw-scale-0 tw-duration-300 group-hover:tw-scale-100 tw-border-2
+                                             tw-border-gray-600 dark:tw-border-gray-200 tw-rounded-full tw-w-full tw-h-full">
+                            </div>
+                            <span class="bi bi-github"></span>
+                        </div>
+                        <span>Github</span>
+                    </button>
+
+                    <a class="btn tw-group max-lg:!tw-w-[160px] tw-flex tw-gap-2 tw-shadow-lg !tw-w-[170px] !tw-rounded-xl !tw-py-4 max-lg:!tw-py-2 tw-transition-transform tw-duration-[0.3s] hover:tw-scale-x-[1.03] tw-bg-gradient-to-br tw-from-[#646cff] tw-to-[#c258f5]"
+                        href="#">
+                        <span>开始使用</span>
+                        <i class="bi bi-arrow-right group-hover:tw-translate-x-1 tw-duration-300"></i>
+                    </a>
+
+                </div>
+            </div>
+
+            <!-- prompt container -->
+            <div class="reveal-up  tw-relative tw-mt-8 tw-flex tw-w-full tw-place-content-center tw-place-items-center"
+                id="dashboard-container">
+                <div
+                    class="purple-bg-grad  reveal-up tw-absolute tw-left-1/2 tw--translate-x-1/2 tw-top-[5%] tw-h-[200px] tw-w-[200px]">
+                </div>
+
+                <div class="tw-relative tw-max-w-[80%] tw-bg-white dark:tw-bg-black tw-border-[1px] dark:tw-border-[#36393c] lg:tw-w-[1024px]
+                                lg:tw-h-[650px]  tw-flex tw-shadow-xl max-lg:tw-h-[450px] max-lg:tw-w-full
+                                tw-overflow-hidden
+                                tw-min-w-[320px] md:tw-w-full tw-min-h-[450px] tw-rounded-xl tw-bg-transparent max-md:tw-max-w-full"
+                    id="dashboard">
+
+                    <div
+                        class="purple-bg-grad tw-max-w-[80%] reveal-up tw-absolute tw-left-1/2 tw--translate-x-1/2 tw-top-[0%] lg:tw-max-w-[1000px] tw-h-full tw-w-full">
+                    </div>
+                    <div class="animated-border tw-w-full tw-h-full tw-p-[2px]">
+                        <div class="tw-w-full tw-h-full tw-rounded-xl tw-overflow-hidden tw-flex">
+
+                            <div class="tw-min-w-[250px] max-lg:tw-hidden tw-p-2 tw-gap-2 tw-flex tw-flex-col tw-bg-gray-100 
+                                            dark:tw-bg-[#171717] tw-h-full">
+                                <div
+                                    class="tw-h-[30px] tw-w-full tw-max-w-[250px] tw-flex tw-gap-2 tw-place-items-center tw-justify-center">
+                                    <img src="data:image/png;base64,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" alt="logo"
+                                        class="tw-object-contain tw-opacity-80 tw-h-full" />
+                                    <span class="tw-font-bold tw-whitespace-nowrap tw-text-[#646cff]">派聪明</span>
+                                </div>
+
+                                <div class="tw-flex tw-mt-2 tw-gap-2 tw-flex-col">
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%20stroke='%23666eff'%20stroke-width='1.5'%3e%3cpath%20d='M12%2022c5.523%200%2010-4.477%2010-10S17.523%202%2012%202S2%206.477%202%2012c0%201.6.376%203.112%201.043%204.453c.178.356.237.763.134%201.148l-.595%202.226a1.3%201.3%200%200%200%201.591%201.592l2.226-.596a1.63%201.63%200%200%201%201.149.133A9.96%209.96%200%200%200%2012%2022Z'/%3e%3cpath%20stroke-linecap='round'%20d='M12%2016V8m-4%206v-4m8%204v-4'%20opacity='0.5'/%3e%3c/g%3e%3c/svg%3e" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>聊天助手</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%3e%3cpath%20fill='%23666eff'%20d='m17.543%2021.694l-.645-.382zm.271-.458l.646.382zm-1.628%200l-.646.382zm.27.458l.646-.382zm-4.266-2.737l.693-.287zm2.705%201.539l-.013.75zm-1.352-.186l-.287.693zm8.267-1.353l.693.287zm-2.705%201.539l-.013-.75zm1.352-.186l.287.693zm.35-7.942l-.393.64zm.825.826l.64-.392zm-8.438-.826l-.392-.64zm-.826.826l-.64-.392zm3.333%207.411l.377-.648zm7.031-2.567a.75.75%200%201%200-1.498-.076zm-1.56-3.914a.75.75%200%201%200%201.479-.248zm-2.983%207.952l.27-.458l-1.29-.764l-.271.458zm-2.649-.458l.271.458l1.291-.764l-.271-.458zm1.358-.306A.13.13%200%200%201%2017%2021.25c.027%200%20.075.016.102.062l-1.29.764c.531.899%201.845.899%202.377%200zm-.648-8.562h1.5v-1.5h-1.5zm-3.5%204v-.5h-1.5v.5zm-1.5%200c0%20.572%200%201.039.025%201.419c.027.387.083.738.222%201.075l1.386-.574c-.05-.123-.09-.293-.111-.603a22%2022%200%200%201-.022-1.317zm3.658%202.996c-.628-.01-.892-.052-1.078-.13l-.574%201.387c.475.196.998.232%201.626.243zm-3.41-.502a3.25%203.25%200%200%200%201.758%201.759l.574-1.386a1.75%201.75%200%200%201-.947-.947zm7.62%202.002c.628-.011%201.15-.047%201.626-.243l-.574-1.386c-.186.077-.45.118-1.078.129zm1.999-2.576a1.75%201.75%200%200%201-.947.947l.574%201.386a3.25%203.25%200%200%200%201.759-1.76zm-3.367-5.92c.833%200%201.405%200%201.846.043c.429.04.655.115.818.215l.784-1.28c-.438-.268-.921-.377-1.46-.429c-.529-.05-1.184-.049-1.988-.049zm2.664.258c.236.144.434.342.578.578l1.28-.784a3.25%203.25%200%200%200-1.074-1.073zM16.25%2011.25c-.804%200-1.46%200-1.987.05c-.54.05-1.023.16-1.461.429l.784%201.279c.163-.1.39-.174.819-.215c.44-.042%201.012-.043%201.845-.043zm-3.5%205c0-.833%200-1.405.043-1.845c.04-.43.115-.656.215-.82l-1.28-.783c-.268.438-.377.921-.429%201.46c-.05.529-.049%201.184-.049%201.988zm.052-4.521a3.25%203.25%200%200%200-1.073%201.073l1.279.784c.144-.236.342-.434.578-.578zm4.029%209.125c-.098-.165-.197-.335-.297-.472a1.5%201.5%200%200%200-.456-.425l-.754%201.296c-.037-.021-.04-.04-.002.013c.048.065.106.162.218.352zm-1.95.392c.227.004.346.006.43.016c.071.008.053.014.013-.009l.754-1.296a1.5%201.5%200%200%200-.601-.186c-.17-.019-.37-.022-.57-.025zm3.579.372c.112-.19.17-.287.218-.352c.039-.053.035-.034-.002-.013l-.754-1.296c-.206.12-.347.276-.456.425c-.1.137-.2.306-.297.472zm.632-1.872c-.198.003-.399.006-.569.025c-.184.02-.393.064-.601.186l.754%201.296c-.04.023-.058.017.012.009c.085-.01.204-.012.43-.016zm2.142-1.784c-.02.378-.06.57-.117.708l1.386.574c.154-.372.207-.765.23-1.206zm1.417-4.086a2.9%202.9%200%200%200-.38-1.074l-1.279.784c.076.123.137.283.18.538z'/%3e%3cpath%20stroke='%23666eff'%20stroke-linecap='round'%20stroke-linejoin='round'%20stroke-width='1.5'%20d='M10%203L5%2021M19%203l-1.806%206.5M22%209H4m-2%207h7'/%3e%3c/g%3e%3c/svg%3e" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>聊天记录</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%20stroke='%23666eff'%20stroke-width='1.5'%3e%3cpath%20stroke-linecap='round'%20d='M18%2010h-5'%20opacity='0.5'/%3e%3cpath%20d='M2%206.95c0-.883%200-1.324.07-1.692A4%204%200%200%201%205.257%202.07C5.626%202%206.068%202%206.95%202c.386%200%20.58%200%20.766.017a4%204%200%200%201%202.18.904c.144.119.28.255.554.529L11%204c.816.816%201.224%201.224%201.712%201.495a4%204%200%200%200%20.848.352C14.098%206%2014.675%206%2015.828%206h.374c2.632%200%203.949%200%204.804.77q.119.105.224.224c.77.855.77%202.172.77%204.804V14c0%203.771%200%205.657-1.172%206.828S17.771%2022%2014%2022h-4c-3.771%200-5.657%200-6.828-1.172S2%2017.771%202%2014z'/%3e%3c/g%3e%3c/svg%3e" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>知识库</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%20stroke='%23666eff'%20stroke-width='1.5'%3e%3cpath%20d='M4.728%2016.137c-1.545-1.546-2.318-2.318-2.605-3.321c-.288-1.003-.042-2.068.45-4.197l.283-1.228c.413-1.792.62-2.688%201.233-3.302s1.51-.82%203.302-1.233l1.228-.284c2.13-.491%203.194-.737%204.197-.45c1.003.288%201.775%201.061%203.32%202.606l1.83%201.83C20.657%209.248%2022%2010.592%2022%2012.262c0%201.671-1.344%203.015-4.033%205.704c-2.69%202.69-4.034%204.034-5.705%204.034c-1.67%200-3.015-1.344-5.704-4.033z'/%3e%3ccircle%20cx='8.607'%20cy='8.879'%20r='2'%20opacity='0.5'%20transform='rotate(-45%208.607%208.879)'/%3e%3cpath%20stroke-linecap='round'%20d='m11.542%2018.5l6.979-6.98'%20opacity='0.5'/%3e%3c/g%3e%3c/svg%3e" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>组织标签</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%20stroke='%23666eff'%20stroke-width='1.5'%3e%3ccircle%20cx='12'%20cy='6'%20r='4'/%3e%3cpath%20d='M20%2017.5c0%202.485%200%204.5-8%204.5s-8-2.015-8-4.5S7.582%2013%2012%2013s8%202.015%208%204.5Z'%20opacity='0.5'/%3e%3c/g%3e%3c/svg%3e" alt="Chat" class="tw-h-5 tw-w-5" />
+                                        <span>用户管理</span>
+                                    </a>
+                                    <a href="#"
+                                        class="tw-flex tw-items-center tw-rounded-sm tw-gap-2 tw-p-2 dark:hover:tw-bg-[#2d2d2ddb] hover:tw-bg-gray-200">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cg%20fill='none'%3e%3cpath%20stroke='%23666eff'%20stroke-width='1.5'%20d='M14%204a2%202%200%201%201-4%200a2%202%200%200%201%204%200Z'/%3e%3cpath%20fill='%23666eff'%20d='m6.048%2010.849l.237-.712zm2.175.725l-.237.712zm.794%201.682l-.7-.27zM7.77%2016.498l.7.269zm10.182-5.649l-.237-.712zm-2.175.725l.237.712zm-.794%201.682l.7-.27zm1.247%203.242l-.7.269zm-5.806%201.26l.651.372zM12%2015l.651-.372a.75.75%200%200%200-1.302%200zm5.147-7.103l-.158-.733zm-1.898.407l.157.733zm-6.498%200l.157-.734zm-1.898-.407l-.157.733zm6.723%209.86l-.651.372zm1.462-9.409l-.152-.734zm-6.076%200l-.152.735zm6.322%203.419l.394.638zm-.466.986l.743-.102zm-6.102-.986l-.394.638zm.466.986l.743.102zM5.81%2011.56l2.175.726l.474-1.423l-2.175-.726zm2.506%201.427L7.07%2016.228l1.4.539l1.247-3.242zm9.398-2.85l-2.175.726l.474%201.423l2.175-.726zm-3.432%203.388l1.247%203.242l1.4-.539l-1.247-3.241zm-3.208%204.605l1.576-2.758l-1.302-.744l-1.576%202.757zM16.99%207.164l-1.897.406l.314%201.467l1.898-.407zm-8.08.406l-1.9-.406l-.314%201.466l1.898.407zm2.44%207.802l1.576%202.758l1.302-.745l-1.576-2.757zm3.743-7.802l-.206.044l.304%201.469l.216-.046zM8.594%209.037l.216.046l.304-1.47l-.206-.043zm6.293-1.423a14.25%2014.25%200%200%201-5.773%200L8.81%209.083a15.75%2015.75%200%200%200%206.38%200zM9.145%2019.25c.798%200%201.535-.428%201.93-1.12l-1.302-.745a.72.72%200%200%201-.628.365zm6.385-2.483a.723.723%200%200%201-.675.983v1.5a2.223%202.223%200%200%200%202.075-3.022zm.01-5.904c-.222.074-.458.147-.65.265l.788%201.277c-.01.005-.002-.001.056-.023c.061-.023.143-.05.28-.096zm.143%202.124a8%208%200%200%201-.104-.277c-.02-.059-.02-.069-.018-.059l-1.486.204c.03.223.124.452.208.67zm-.793-1.859a1.75%201.75%200%200%200-.815%201.727l1.486-.204a.25.25%200%200%201%20.117-.246zm3.36-1.733a.78.78%200%200%201-.535.742l.474%201.423a2.28%202.28%200%200%200%201.561-2.165zM7.07%2016.228a2.223%202.223%200%200%200%202.075%203.022v-1.5a.723.723%200%200%201-.675-.983zm.916-3.942c.137.045.219.073.28.096c.058.022.065.028.056.023l.788-1.277c-.192-.118-.428-.191-.65-.265zm1.73%201.24c.085-.22.178-.448.209-.671l-1.486-.204c.001-.01.001%200-.018.059a8%208%200%200%201-.104.277zm-1.394-1.121a.25.25%200%200%201%20.117.246l1.486.204a1.75%201.75%200%200%200-.815-1.727zM4.25%209.395c0%20.983.629%201.855%201.56%202.165l.475-1.423a.78.78%200%200%201-.535-.742zm1.5%200c0-.498.46-.87.946-.765l.315-1.466A2.282%202.282%200%200%200%204.25%209.395zm7.175%208.735a2.22%202.22%200%200%200%201.93%201.12v-1.5c-.26%200-.5-.14-.628-.365zm6.825-8.735a2.282%202.282%200%200%200-2.76-2.231l.314%201.466a.782.782%200%200%201%20.946.765z'/%3e%3cpath%20stroke='%23666eff'%20stroke-linecap='round'%20stroke-width='1.5'%20d='M19.454%2014.5c1.583.796%202.546%201.848%202.546%203c0%202.485-4.477%204.5-10%204.5S2%2019.985%202%2017.5c0-1.152.963-2.204%202.546-3'%20opacity='0.5'/%3e%3c/g%3e%3c/svg%3e" alt="Chat"
+                                            class="tw-h-5 tw-w-5" />
+                                        <span>个人中心</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="tw-flex tw-w-full tw-p-4 tw-bg-white dark:tw-bg-black tw-h-full tw-flex-col"
+                                id="pixa-playground">
+                                <div class="tw-relative tw-w-full tw-flex tw-place-content-center tw-h-full">
+                                    <div
+                                        class="tw-absolute tw-top-[40%] max-lg:tw-top-[40%] tw-left-1/2 tw--translate-x-1/2  tw-w-[150px] tw-h-[150px]">
+                                        <img src="data:image/png;base64,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"
+                                            class="tw-w-full tw-h-full tw-object-contain tw-opacity-20"
+                                            alt="PaiSmart logo">
+                                    </div>
+                                    <div class="prompt-container tw-overflow-y-auto tw-px-[5%] max-lg:tw-px-2 scrollbar max-lg:tw-max-h-[80%] tw-max-h-[550px] 
+                                                    max-lg:tw-mt-12 tw-w-full tw-h-full tw-z-10 tw-flex tw-flex-col"
+                                        id="prompt-container">
+                                        <div
+                                            class="tw-w-full tw-flex tw-text-center tw-flex-col tw-place-content-center">
+                                            <h2 class="tw-text-2xl max-md:tw-text-2xl max-md:tw-mt-3 tw-opacity-80">
+                                                聊天助手
+                                            </h2>
+                                            <div class="tw-inline tw-mt-6 max-md:tw-mt-3">
+                                                <span id="prompts-sample"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <form action="" id="prompt-form" onsubmit="return false;"
+                                    class="tw-place-content-center tw-mt-auto tw-h-[50px] tw-p-1 tw-place-items-center 
+                                                tw-justify-around tw-flex tw-gap-1 tw-bottom-2 tw-w-full tw-rounded-md tw-bg-[#f3f4f6] dark:tw-bg-[#171717]">
+                                    <input placeholder="给 派聪明 发送消息" type="text"
+                                        class="tw-p-2 !tw-outline-none tw-bg-transparent tw-border-none tw-w-full tw-placehoder-gray-500
+                                                                    dark:tw-placeholder-opacity-60 dark:tw-placeholder-gray-300 tw-max-w-[80%] tw-h-full"
+                                        name="prompt">
+                                    <button class="btn !tw-bg-[#6366f1] !tw-p-2 !tw-px-3 !tw-text-white">
+                                        <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cpath%20fill='none'%20stroke='%23fff'%20d='M5.5%2013L18%206m-1.75%2017.5h.25a72.7%2072.7%200%200%201%206.504-21.962L23.26%201L23%20.74l-.538.256A72.7%2072.7%200%200%201%20.5%207.5v.25l5%205v7.75h.25l1.774-1.69a12%2012%200%200%201%202.313-1.723z'%20stroke-width='1'/%3e%3c/svg%3e" alt="send" class="tw-h-5 tw-w-5" />
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="tw-relative tw-flex tw-w-full tw-max-w-[100vw] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden tw-p-8">
+        <h2 class="reveal-up tw-text-3xl max-md:tw-text-xl">
+            丰富的技术栈
+        </h2>
+
+        <div class="reveal-up carousel-container">
+            <div class="carousel lg:w-place-content-center tw-mt-10 tw-flex tw-w-full tw-gap-5 max-md:tw-gap-2">
+                <div class="carousel-img reveal-up">
+                    <img src="/images/mysql-D-Q5ikhG.svg" alt="MySQL"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">MySQL</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%20128%20128'%3e%3cpath%20fill='%23a41e11'%20d='M121.8%2093.1c-6.7%203.5-41.4%2017.7-48.8%2021.6s-11.5%203.8-17.3%201S13%2098.1%206.3%2094.9c-3.3-1.6-5-2.9-5-4.2V78s48-10.5%2055.8-13.2c7.8-2.8%2010.4-2.9%2017-.5s46.1%209.5%2052.6%2011.9v12.5c0%201.3-1.5%202.7-4.9%204.4'/%3e%3cpath%20fill='%23d82c20'%20d='M121.8%2080.5C115.1%2084%2080.4%2098.2%2073%20102.1s-11.5%203.8-17.3%201S13%2085.4%206.3%2082.2C-.3%2079-.5%2076.8%206%2074.3c6.5-2.6%2043.2-17%2051-19.7c7.8-2.8%2010.4-2.9%2017-.5s41.1%2016.1%2047.6%2018.5c6.7%202.4%206.9%204.4.2%207.9'/%3e%3cpath%20fill='%23a41e11'%20d='M121.8%2072.5C115.1%2076%2080.4%2090.2%2073%2094.1c-7.4%203.8-11.5%203.8-17.3%201S13%2077.4%206.3%2074.2c-3.3-1.6-5-2.9-5-4.2V57.3s48-10.5%2055.8-13.2c7.8-2.8%2010.4-2.9%2017-.5s46.1%209.5%2052.6%2011.9V68c0%201.3-1.5%202.7-4.9%204.5'/%3e%3cpath%20fill='%23d82c20'%20d='M121.8%2059.8c-6.7%203.5-41.4%2017.7-48.8%2021.6c-7.4%203.8-11.5%203.8-17.3%201S13%2064.7%206.3%2061.5s-6.8-5.4-.3-7.9c6.5-2.6%2043.2-17%2051-19.7c7.8-2.8%2010.4-2.9%2017-.5s41.1%2016.1%2047.6%2018.5c6.7%202.4%206.9%204.4.2%207.9'/%3e%3cpath%20fill='%23a41e11'%20d='M121.8%2051c-6.7%203.5-41.4%2017.7-48.8%2021.6c-7.4%203.8-11.5%203.8-17.3%201C49.9%2070.9%2013%2056%206.3%2052.8c-3.3-1.6-5.1-2.9-5.1-4.2V35.9s48-10.5%2055.8-13.2c7.8-2.8%2010.4-2.9%2017-.5s46.1%209.5%2052.6%2011.9v12.5c.1%201.3-1.4%202.6-4.8%204.4'/%3e%3cpath%20fill='%23d82c20'%20d='M121.8%2038.3C115.1%2041.8%2080.4%2056%2073%2059.9c-7.4%203.8-11.5%203.8-17.3%201S13%2043.3%206.3%2040.1s-6.8-5.4-.3-7.9c6.5-2.6%2043.2-17%2051-19.7c7.8-2.8%2010.4-2.9%2017-.5s41.1%2016.1%2047.6%2018.5c6.7%202.4%206.9%204.4.2%207.8'/%3e%3cpath%20fill='%23fff'%20d='m80.4%2026.1l-10.8%201.2l-2.5%205.8l-3.9-6.5l-12.5-1.1l9.3-3.4l-2.8-5.2l8.8%203.4l8.2-2.7L72%2023zM66.5%2054.5l-20.3-8.4l29.1-4.4z'/%3e%3cellipse%20cx='38.4'%20cy='35.4'%20fill='%23fff'%20rx='15.5'%20ry='6'/%3e%3cpath%20fill='%237a0c00'%20d='m93.3%2027.7l17.2%206.8l-17.2%206.8z'/%3e%3cpath%20fill='%23ad2115'%20d='m74.3%2035.3l19-7.6v13.6l-1.9.8z'/%3e%3c/svg%3e" alt="Redis"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Redis</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2024%2024'%3e%3cpath%20fill='%23ff002b'%20d='M13.207.006a2.16%202.16%200%200%200-1.62.582a2.15%202.15%200%200%200-.095%203.035l3.408%203.55a3.042%203.042%200%200%201-.663%204.688l-.463.239V7.285a15.42%2015.42%200%200%200-8.018%2010.487v.017l6.549-3.328v7.621L13.779%2024V13.682l.897-.463a4.443%204.443%200%200%200%201.22-7.03l-3.37-3.525a.75.75%200%200%201%20.037-1.055a.75.75%200%200%201%201.056.038l.467.486l-.006.006l4.07%204.244a.057.057%200%200%200%20.082%200a.06.06%200%200%200%200-.07l-3.14-5.143l-.149.143l.149-.145C14.494.393%2013.829.054%2013.207.006m-.902%209.865v2.994l-4.152%202.149a14%2014%200%200%201%202.767-3.928a14%2014%200%200%201%201.385-1.215'/%3e%3c/svg%3e" alt="MinIO"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">MinIO</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='123.98'%20height='200'%20viewBox='0%200%20256%20413'%3e%3cpath%20fill='%23fff'%20d='M87.932%2036.714c-4.55-4.571-10.896-7.394-17.951-7.394c-7.029%200-13.326%202.823-17.822%207.394h-.13c-4.535%204.55-7.358%2010.9-7.358%2017.93c0%207.055%202.823%2013.352%207.359%2017.875l.129.102c4.496%204.55%2010.793%207.346%2017.822%207.346c7.055%200%2013.402-2.797%2017.951-7.346L88%2072.52c4.558-4.523%207.354-10.82%207.354-17.876c0-7.029-2.796-13.38-7.354-17.929zm-17.951%20346.64a25.5%2025.5%200%200%200%2017.951-7.368l.067-.134c4.558-4.487%207.354-10.838%207.354-17.817c0-7.056-2.796-13.38-7.354-17.952h-.067c-4.55-4.625-10.896-7.42-17.951-7.42c-7.029%200-13.326%202.795-17.822%207.42h-.13c-4.535%204.572-7.358%2010.896-7.358%2017.952c0%206.98%202.823%2013.33%207.359%2017.817l.129.134a25.15%2025.15%200%200%200%2017.822%207.368m137.972-76.72c6.275-1.646%2011.957-5.673%2015.423-11.761l.468-.887c3.082-5.776%203.644-12.44%201.998-18.344c-1.659-6.324-5.735-11.917-11.81-15.418l-.352-.237c-5.918-3.242-12.662-3.947-18.857-2.274c-6.297%201.57-11.952%205.775-15.4%2011.814c-3.492%205.981-4.223%2012.88-2.55%2019.231c1.725%206.244%205.761%2011.89%2011.796%2015.418h.04c6.047%203.475%2012.898%204.104%2019.244%202.458M95.97%20180.387c-6.654-6.637-15.824-10.794-25.988-10.794c-10.124%200-19.272%204.157-25.912%2010.794c-6.61%206.614-10.686%2015.76-10.686%2025.898c0%2010.165%204.076%2019.339%2010.686%2026.029c6.64%206.582%2015.788%2010.712%2025.912%2010.712c10.164%200%2019.334-4.13%2025.988-10.712c6.623-6.69%2010.7-15.864%2010.7-26.029c0-10.137-4.077-19.284-10.7-25.898m-14.61-43.164c14.726%202.426%2027.976%209.482%2038.087%2019.673h.08a72%2072%200%200%201%204.625%205.147l25.284-14.629c-3.399-10.271-3.555-21.01-.826-31.072c3.609-13.487%2012.35-25.56%2025.453-33.137l.433-.26c12.96-7.345%2027.696-8.861%2041-5.253a54.52%2054.52%200%200%201%2033.186%2025.48v.026c7.529%2013.015%209.059%2027.96%205.464%2041.393c-3.581%2013.478-12.363%2025.631-25.453%2033.155l-3.452%202.043h-.352c-12.109%205.771-25.426%206.663-37.655%203.447c-10.044-2.667-19.258-8.26-26.47-16.23l-25.243%2014.585a69.7%2069.7%200%200%201%204.509%2024.694a70.7%2070.7%200%200%201-4.51%2024.824l25.244%2014.53c7.212-8.072%2016.426-13.562%2026.47-16.229c13.469-3.684%2028.405-2.114%2041.46%205.49l.833.393v.053c12.613%207.627%2021.078%2019.441%2024.619%2032.767a54.43%2054.43%200%200%201-5.464%2041.344l-.454.914l-.054-.08c-7.564%2012.573-19.48%2021.091-32.638%2024.695c-13.5%203.554-28.432%202.038-41.473-5.46v-.106c-13.103-7.578-21.844-19.678-25.453-33.133c-2.729-10.035-2.573-20.779.826-31.046l-25.284-14.584c-1.45%201.78-3.02%203.452-4.625%205.071l-.08.076c-10.11%2010.142-23.361%2017.198-38.088%2019.548v29.217c10.494%202.194%2019.9%207.448%2027.273%2014.816l.035.08c9.88%209.825%2015.994%2023.517%2015.994%2038.57c0%2015.003-6.115%2028.61-15.994%2038.489l-.035.156c-9.946%209.879-23.598%2015.993-38.65%2015.993c-14.972%200-28.642-6.114-38.56-15.993h-.036v-.156c-9.893-9.879-16.02-23.486-16.02-38.49a54.26%2054.26%200%200%201%2016.02-38.569v-.08h.035c7.36-7.368%2016.779-12.622%2027.246-14.816v-29.217c-14.74-2.35-27.95-9.406-38.048-19.548l-.107-.076C7.89%20243.053%200%20225.624%200%20206.285c0-19.284%207.89-36.714%2020.511-49.389h.107c10.098-10.19%2023.308-17.247%2038.048-19.673v-29.087A55.34%2055.34%200%200%201%2031.42%2093.293h-.035v-.08c-9.893-9.928-16.02-23.518-16.02-38.57c0-14.976%206.127-28.695%2016.02-38.574l.035-.049C41.34%206.115%2055.01%200%2069.98%200c15.053%200%2028.705%206.115%2038.65%2016.02v.05h.036c9.88%209.878%2015.994%2023.597%2015.994%2038.573c0%2015.052-6.115%2028.642-15.994%2038.57l-.035.08c-7.373%207.319-16.779%2012.568-27.273%2014.843zm142.017-19.392l-.21-.312c-3.492-5.882-9.058-9.803-15.213-11.502c-6.346-1.672-13.197-.963-19.284%202.511h.04c-6.075%203.448-10.138%209.094-11.837%2015.418a25.3%2025.3%200%200%200%202.551%2019.231l.116.16a25%2025%200%200%200%2015.284%2011.57a24.83%2024.83%200%200%200%2019.21-2.48l.325-.156c5.905-3.528%209.838-9.094%2011.484-15.208c1.673-6.298%201.008-13.197-2.466-19.232'/%3e%3c/svg%3e" alt="Kafka"
+                        class="tw-h-full tw-object-contain tw-transition-colors tw-hidden dark:tw-block" srcset="" />
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='123.98'%20height='200'%20viewBox='0%200%20256%20413'%3e%3cpath%20fill='%23000'%20d='M87.932%2036.714c-4.55-4.571-10.896-7.394-17.951-7.394c-7.029%200-13.326%202.823-17.822%207.394h-.13c-4.535%204.55-7.358%2010.9-7.358%2017.93c0%207.055%202.823%2013.352%207.359%2017.875l.129.102c4.496%204.55%2010.793%207.346%2017.822%207.346c7.055%200%2013.402-2.797%2017.951-7.346L88%2072.52c4.558-4.523%207.354-10.82%207.354-17.876c0-7.029-2.796-13.38-7.354-17.929zm-17.951%20346.64a25.5%2025.5%200%200%200%2017.951-7.368l.067-.134c4.558-4.487%207.354-10.838%207.354-17.817c0-7.056-2.796-13.38-7.354-17.952h-.067c-4.55-4.625-10.896-7.42-17.951-7.42c-7.029%200-13.326%202.795-17.822%207.42h-.13c-4.535%204.572-7.358%2010.896-7.358%2017.952c0%206.98%202.823%2013.33%207.359%2017.817l.129.134a25.15%2025.15%200%200%200%2017.822%207.368m137.972-76.72c6.275-1.646%2011.957-5.673%2015.423-11.761l.468-.887c3.082-5.776%203.644-12.44%201.998-18.344c-1.659-6.324-5.735-11.917-11.81-15.418l-.352-.237c-5.918-3.242-12.662-3.947-18.857-2.274c-6.297%201.57-11.952%205.775-15.4%2011.814c-3.492%205.981-4.223%2012.88-2.55%2019.231c1.725%206.244%205.761%2011.89%2011.796%2015.418h.04c6.047%203.475%2012.898%204.104%2019.244%202.458M95.97%20180.387c-6.654-6.637-15.824-10.794-25.988-10.794c-10.124%200-19.272%204.157-25.912%2010.794c-6.61%206.614-10.686%2015.76-10.686%2025.898c0%2010.165%204.076%2019.339%2010.686%2026.029c6.64%206.582%2015.788%2010.712%2025.912%2010.712c10.164%200%2019.334-4.13%2025.988-10.712c6.623-6.69%2010.7-15.864%2010.7-26.029c0-10.137-4.077-19.284-10.7-25.898m-14.61-43.164c14.726%202.426%2027.976%209.482%2038.087%2019.673h.08a72%2072%200%200%201%204.625%205.147l25.284-14.629c-3.399-10.271-3.555-21.01-.826-31.072c3.609-13.487%2012.35-25.56%2025.453-33.137l.433-.26c12.96-7.345%2027.696-8.861%2041-5.253a54.52%2054.52%200%200%201%2033.186%2025.48v.026c7.529%2013.015%209.059%2027.96%205.464%2041.393c-3.581%2013.478-12.363%2025.631-25.453%2033.155l-3.452%202.043h-.352c-12.109%205.771-25.426%206.663-37.655%203.447c-10.044-2.667-19.258-8.26-26.47-16.23l-25.243%2014.585a69.7%2069.7%200%200%201%204.509%2024.694a70.7%2070.7%200%200%201-4.51%2024.824l25.244%2014.53c7.212-8.072%2016.426-13.562%2026.47-16.229c13.469-3.684%2028.405-2.114%2041.46%205.49l.833.393v.053c12.613%207.627%2021.078%2019.441%2024.619%2032.767a54.43%2054.43%200%200%201-5.464%2041.344l-.454.914l-.054-.08c-7.564%2012.573-19.48%2021.091-32.638%2024.695c-13.5%203.554-28.432%202.038-41.473-5.46v-.106c-13.103-7.578-21.844-19.678-25.453-33.133c-2.729-10.035-2.573-20.779.826-31.046l-25.284-14.584c-1.45%201.78-3.02%203.452-4.625%205.071l-.08.076c-10.11%2010.142-23.361%2017.198-38.088%2019.548v29.217c10.494%202.194%2019.9%207.448%2027.273%2014.816l.035.08c9.88%209.825%2015.994%2023.517%2015.994%2038.57c0%2015.003-6.115%2028.61-15.994%2038.489l-.035.156c-9.946%209.879-23.598%2015.993-38.65%2015.993c-14.972%200-28.642-6.114-38.56-15.993h-.036v-.156c-9.893-9.879-16.02-23.486-16.02-38.49a54.26%2054.26%200%200%201%2016.02-38.569v-.08h.035c7.36-7.368%2016.779-12.622%2027.246-14.816v-29.217c-14.74-2.35-27.95-9.406-38.048-19.548l-.107-.076C7.89%20243.053%200%20225.624%200%20206.285c0-19.284%207.89-36.714%2020.511-49.389h.107c10.098-10.19%2023.308-17.247%2038.048-19.673v-29.087A55.34%2055.34%200%200%201%2031.42%2093.293h-.035v-.08c-9.893-9.928-16.02-23.518-16.02-38.57c0-14.976%206.127-28.695%2016.02-38.574l.035-.049C41.34%206.115%2055.01%200%2069.98%200c15.053%200%2028.705%206.115%2038.65%2016.02v.05h.036c9.88%209.878%2015.994%2023.597%2015.994%2038.573c0%2015.052-6.115%2028.642-15.994%2038.57l-.035.08c-7.373%207.319-16.779%2012.568-27.273%2014.843zm142.017-19.392l-.21-.312c-3.492-5.882-9.058-9.803-15.213-11.502c-6.346-1.672-13.197-.963-19.284%202.511h.04c-6.075%203.448-10.138%209.094-11.837%2015.418a25.3%2025.3%200%200%200%202.551%2019.231l.116.16a25%2025%200%200%200%2015.284%2011.57a24.83%2024.83%200%200%200%2019.21-2.48l.325-.156c5.905-3.528%209.838-9.094%2011.484-15.208c1.673-6.298%201.008-13.197-2.466-19.232'/%3e%3c/svg%3e" alt="Kafka"
+                        class="tw-h-full tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Kafka</span>
+                </div>
+                <div class="carousel-img reveal-up">
+                    <img src="data:image/svg+xml,%3csvg%20xmlns='http://www.w3.org/2000/svg'%20width='200'%20height='200'%20viewBox='0%200%2032%2032'%3e%3cpath%20fill='%23fed10a'%20d='m12.761%2013.89l6.644%203.027l6.7-5.874a7%207%200%200%200%20.141-1.475a7.484%207.484%200%200%200-13.66-4.233l-1.12%205.785Z'/%3e%3cpath%20fill='%2324bbb1'%20d='M5.886%2020.919a7.3%207.3%200%200%200-.141%201.5a7.514%207.514%200%200%200%2013.724%204.22l1.1-5.759l-1.469-2.821l-6.67-3.04Z'/%3e%3cpath%20fill='%23ef5098'%20d='M5.848%209.426L10.4%2010.5l1-5.169a3.594%203.594%200%200%200-5.552%204.095'/%3e%3cpath%20fill='%2317a8e0'%20d='M5.45%2010.517a5.016%205.016%200%200%200-.218%209.453l6.388-5.77l-1.167-2.5Z'/%3e%3cpath%20fill='%2393c83e'%20d='M20.624%2026.639a3.589%203.589%200%200%200%205.541-4.092l-4.541-1.065Z'/%3e%3cpath%20fill='%230779a1'%20d='m21.547%2020.29l5%201.167A5.016%205.016%200%200%200%2026.768%2012l-6.541%205.733Z'/%3e%3c/svg%3e" alt="Elasticsearch"
+                        class="tw-h-full tw-object-contain tw-transition-colors" srcset="" />
+                    <span class="tw-uppercase tw-font-bold">Elasticsearch</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <section
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[100vh] max-lg:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full  tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[900px] tw-gap-4 tw-p-4">
+            <div class="purple-bg-grad  reveal-up tw-absolute tw-right-[20%] tw-top-[20%] tw-h-[200px] tw-w-[200px]">
+            </div>
+            <h2 class="reveal-up tw-text-6xl max-lg:tw-text-4xl tw-text-center tw-leading-normal tw-uppercase">
+
+                <span class="tw-font-semibold">构建你自己专属的 </span>
+                <br>
+                <span class="tw-font-serif">RAG知识库应用</span>
+            </h2>
+            <p
+                class="reveal-up tw-mt-8 tw-max-w-[650px] tw-text-gray-900 dark:tw-text-gray-200 tw-text-center max-md:tw-text-sm">
+                通过上传您的文档（支持 PDF、DOC、DOCX 和 TXT 格式），我们的系统会自动为您构建专属的知识库。基于先进的 RAG（检索增强生成）技术，系统会智能分析文档内容，建立语义索引，让 AI
+                能够准确理解文档上下文，并针对您的专业问题提供精准的解答。无论是技术文档、研究报告还是业务资料，都能轻松转化为智能知识助手。
+            </p>
+        </div>
+    </section>
+
+    <section class="tw-relative tw-w-full tw-flex tw-flex-col tw-place-content-center tw-place-items-center">
+        <div class="reveal-up tw-mt-5 tw-flex tw-flex-col tw-gap-3 tw-text-center">
+            <h2 class="tw-text-6xl tw-font-medium max-md:tw-text-3xl tw-p-2">
+                支持众多的AI模型
+            </h2>
+        </div>
+        <div
+            class="tw-w-[80vw] tw-max-w-[70vw] tw-mt-20 tw-flex tw-gap-x-14 tw-gap-y-10 tw-items-center tw-flex-wrap tw-justify-center">
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eDeepSeek%3c/title%3e%3cpath%20d='M23.748%204.482c-.254-.124-.364.113-.512.234-.051.039-.094.09-.137.136-.372.397-.806.657-1.373.626-.829-.046-1.537.214-2.163.848-.133-.782-.575-1.248-1.247-1.548-.352-.156-.708-.311-.955-.65-.172-.241-.219-.51-.305-.774-.055-.16-.11-.323-.293-.35-.2-.031-.278.136-.356.276-.313.572-.434%201.202-.422%201.84.027%201.436.633%202.58%201.838%203.393.137.093.172.187.129.323-.082.28-.18.552-.266.833-.055.179-.137.217-.329.14a5.526%205.526%200%2001-1.736-1.18c-.857-.828-1.631-1.742-2.597-2.458a11.365%2011.365%200%2000-.689-.471c-.985-.957.13-1.743.388-1.836.27-.098.093-.432-.779-.428-.872.004-1.67.295-2.687.684a3.055%203.055%200%2001-.465.137%209.597%209.597%200%2000-2.883-.102c-1.885.21-3.39%201.102-4.497%202.623C.082%208.606-.231%2010.684.152%2012.85c.403%202.284%201.569%204.175%203.36%205.653%201.858%201.533%203.997%202.284%206.438%202.14%201.482-.085%203.133-.284%204.994-1.86.47.234.962.327%201.78.397.63.059%201.236-.03%201.705-.128.735-.156.684-.837.419-.961-2.155-1.004-1.682-.595-2.113-.926%201.096-1.296%202.746-2.642%203.392-7.003.05-.347.007-.565%200-.845-.004-.17.035-.237.23-.256a4.173%204.173%200%20001.545-.475c1.396-.763%201.96-2.015%202.093-3.517.02-.23-.004-.467-.247-.588zM11.581%2018c-2.089-1.642-3.102-2.183-3.52-2.16-.392.024-.321.471-.235.763.09.288.207.486.371.739.114.167.192.416-.113.603-.673.416-1.842-.14-1.897-.167-1.361-.802-2.5-1.86-3.301-3.307-.774-1.393-1.224-2.887-1.298-4.482-.02-.386.093-.522.477-.592a4.696%204.696%200%20011.529-.039c2.132.312%203.946%201.265%205.468%202.774.868.86%201.525%201.887%202.202%202.891.72%201.066%201.494%202.082%202.48%202.914.348.292.625.514.891.677-.802.09-2.14.11-3.054-.614zm1-6.44a.306.306%200%2001.415-.287.302.302%200%2001.2.288.306.306%200%2001-.31.307.303.303%200%2001-.304-.308zm3.11%201.596c-.2.081-.399.151-.59.16a1.245%201.245%200%2001-.798-.254c-.274-.23-.47-.358-.552-.758a1.73%201.73%200%2001.016-.588c.07-.327-.008-.537-.239-.727-.187-.156-.426-.199-.688-.199a.559.559%200%2001-.254-.078c-.11-.054-.2-.19-.114-.358.028-.054.16-.186.192-.21.356-.202.767-.136%201.146.016.352.144.618.408%201.001.782.391.451.462.576.685.914.176.265.336.537.445.848.067.195-.019.354-.25.452z'%20fill='%234D6BFE'%3e%3c/path%3e%3c/svg%3e" alt="DeepSeek"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">DeepSeek</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eQwen%3c/title%3e%3cpath%20d='M12.604%201.34c.393.69.784%201.382%201.174%202.075a.18.18%200%2000.157.091h5.552c.174%200%20.322.11.446.327l1.454%202.57c.19.337.24.478.024.837-.26.43-.513.864-.76%201.3l-.367.658c-.106.196-.223.28-.04.512l2.652%204.637c.172.301.111.494-.043.77-.437.785-.882%201.564-1.335%202.34-.159.272-.352.375-.68.37-.777-.016-1.552-.01-2.327.016a.099.099%200%2000-.081.05%20575.097%20575.097%200%2001-2.705%204.74c-.169.293-.38.363-.725.364-.997.003-2.002.004-3.017.002a.537.537%200%2001-.465-.271l-1.335-2.323a.09.09%200%2000-.083-.049H4.982c-.285.03-.553-.001-.805-.092l-1.603-2.77a.543.543%200%2001-.002-.54l1.207-2.12a.198.198%200%20000-.197%20550.951%20550.951%200%2001-1.875-3.272l-.79-1.395c-.16-.31-.173-.496.095-.965.465-.813.927-1.625%201.387-2.436.132-.234.304-.334.584-.335a338.3%20338.3%200%20012.589-.001.124.124%200%2000.107-.063l2.806-4.895a.488.488%200%2001.422-.246c.524-.001%201.053%200%201.583-.006L11.704%201c.341-.003.724.032.9.34zm-3.432.403a.06.06%200%2000-.052.03L6.254%206.788a.157.157%200%2001-.135.078H3.253c-.056%200-.07.025-.041.074l5.81%2010.156c.025.042.013.062-.034.063l-2.795.015a.218.218%200%2000-.2.116l-1.32%202.31c-.044.078-.021.118.068.118l5.716.008c.046%200%20.08.02.104.061l1.403%202.454c.046.081.092.082.139%200l5.006-8.76.783-1.382a.055.055%200%2001.096%200l1.424%202.53a.122.122%200%2000.107.062l2.763-.02a.04.04%200%2000.035-.02.041.041%200%20000-.04l-2.9-5.086a.108.108%200%20010-.113l.293-.507%201.12-1.977c.024-.041.012-.062-.035-.062H9.2c-.059%200-.073-.026-.043-.077l1.434-2.505a.107.107%200%20000-.114L9.225%201.774a.06.06%200%2000-.053-.031zm6.29%208.02c.046%200%20.058.02.034.06l-.832%201.465-2.613%204.585a.056.056%200%2001-.05.029.058.058%200%2001-.05-.029L8.498%209.841c-.02-.034-.01-.052.028-.054l.216-.012%206.722-.012z'%20fill='url(%23lobe-icons-qwen-fill)'%20fill-rule='nonzero'%3e%3c/path%3e%3cdefs%3e%3clinearGradient%20id='lobe-icons-qwen-fill'%20x1='0%25'%20x2='100%25'%20y1='0%25'%20y2='0%25'%3e%3cstop%20offset='0%25'%20stop-color='%236336E7'%20stop-opacity='.84'%3e%3c/stop%3e%3cstop%20offset='100%25'%20stop-color='%236F69F7'%20stop-opacity='.84'%3e%3c/stop%3e%3c/linearGradient%3e%3c/defs%3e%3c/svg%3e" alt="Qwen"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">通义千问</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20fill='currentColor'%20fill-rule='evenodd'%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eOpenAI%3c/title%3e%3cpath%20d='M21.55%2010.004a5.416%205.416%200%2000-.478-4.501c-1.217-2.09-3.662-3.166-6.05-2.66A5.59%205.59%200%200010.831%201C8.39.995%206.224%202.546%205.473%204.838A5.553%205.553%200%20001.76%207.496a5.487%205.487%200%2000.691%206.5%205.416%205.416%200%2000.477%204.502c1.217%202.09%203.662%203.165%206.05%202.66A5.586%205.586%200%200013.168%2023c2.443.006%204.61-1.546%205.361-3.84a5.553%205.553%200%20003.715-2.66%205.488%205.488%200%2000-.693-6.497v.001zm-8.381%2011.558a4.199%204.199%200%2001-2.675-.954c.034-.018.093-.05.132-.074l4.44-2.53a.71.71%200%2000.364-.623v-6.176l1.877%201.069c.02.01.033.029.036.05v5.115c-.003%202.274-1.87%204.118-4.174%204.123zM4.192%2017.78a4.059%204.059%200%2001-.498-2.763c.032.02.09.055.131.078l4.44%202.53c.225.13.504.13.73%200l5.42-3.088v2.138a.068.068%200%2001-.027.057L9.9%2019.288c-1.999%201.136-4.552.46-5.707-1.51h-.001zM3.023%208.216A4.15%204.15%200%20015.198%206.41l-.002.151v5.06a.711.711%200%2000.364.624l5.42%203.087-1.876%201.07a.067.067%200%2001-.063.005l-4.489-2.559c-1.995-1.14-2.679-3.658-1.53-5.63h.001zm15.417%203.54l-5.42-3.088L14.896%207.6a.067.067%200%2001.063-.006l4.489%202.557c1.998%201.14%202.683%203.662%201.529%205.633a4.163%204.163%200%2001-2.174%201.807V12.38a.71.71%200%2000-.363-.623zm1.867-2.773a6.04%206.04%200%2000-.132-.078l-4.44-2.53a.731.731%200%2000-.729%200l-5.42%203.088V7.325a.068.068%200%2001.027-.057L14.1%204.713c2-1.137%204.555-.46%205.707%201.513.487.833.664%201.809.499%202.757h.001zm-11.741%203.81l-1.877-1.068a.065.065%200%2001-.036-.051V6.559c.001-2.277%201.873-4.122%204.181-4.12.976%200%201.92.338%202.671.954-.034.018-.092.05-.131.073l-4.44%202.53a.71.71%200%2000-.365.623l-.003%206.173v.002zm1.02-2.168L12%209.25l2.414%201.375v2.75L12%2014.75l-2.415-1.375v-2.75z'%3e%3c/path%3e%3c/svg%3e" alt="OpenAI"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="/images/openai-DaV4KpBm.webp" alt="OpenAI"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">OpenAI</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20fill='currentColor'%20fill-rule='evenodd'%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eKimi%3c/title%3e%3cpath%20d='M19.738%205.776c.163-.209.306-.4.457-.585.07-.087.064-.153-.004-.244-.655-.861-.717-1.817-.34-2.787.283-.73.909-1.072%201.674-1.145.477-.045.945.004%201.379.236.57.305.902.77%201.01%201.412.086.512.07%201.012-.075%201.508-.257.878-.888%201.333-1.753%201.448-.718.096-1.446.108-2.17.157-.056.004-.113%200-.178%200z'%20fill='%23027AFF'%3e%3c/path%3e%3cpath%20d='M17.962%201.844h-4.326l-3.425%207.81H5.369V1.878H1.5V22h3.87v-8.477h6.824a3.025%203.025%200%20002.743-1.75V22h3.87v-8.477a3.87%203.87%200%2000-3.588-3.86v-.01h-2.125a3.94%203.94%200%20002.323-2.12l2.545-5.689z'%3e%3c/path%3e%3c/svg%3e" alt="Kimi"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="/images/kimi-OUKmreDt.webp" alt="Kimi"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Kimi</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eDoubao%3c/title%3e%3cpath%20d='M5.31%2015.756c.172-3.75%201.883-5.999%202.549-6.739-3.26%202.058-5.425%205.658-6.358%208.308v1.12C1.501%2021.513%204.226%2024%207.59%2024a6.59%206.59%200%20002.2-.375c.353-.12.7-.248%201.039-.378.913-.899%201.65-1.91%202.243-2.992-4.877%202.431-7.974.072-7.763-4.5l.002.001z'%20fill='%231E37FC'%3e%3c/path%3e%3cpath%20d='M22.57%2010.283c-1.212-.901-4.109-2.404-7.397-2.8.295%203.792.093%208.766-2.1%2012.773a12.782%2012.782%200%2001-2.244%202.992c3.764-1.448%206.746-3.457%208.596-5.219%202.82-2.683%203.353-5.178%203.361-6.66a2.737%202.737%200%2000-.216-1.084v-.002z'%20fill='%2337E1BE'%3e%3c/path%3e%3cpath%20d='M14.303%201.867C12.955.7%2011.248%200%209.39%200%207.532%200%205.883.677%204.545%201.807%202.791%203.29%201.627%205.557%201.5%208.125v9.201c.932-2.65%203.097-6.25%206.357-8.307.5-.318%201.025-.595%201.569-.829%201.883-.801%203.878-.932%205.746-.706-.222-2.83-.718-5.002-.87-5.617h.001z'%20fill='%23A569FF'%3e%3c/path%3e%3cpath%20d='M17.305%204.961a199.47%20199.47%200%2001-1.08-1.094c-.202-.213-.398-.419-.586-.622l-1.333-1.378c.151.615.648%202.786.869%205.617%203.288.395%206.185%201.898%207.396%202.8-1.306-1.275-3.475-3.487-5.266-5.323z'%20fill='%231E37FC'%3e%3c/path%3e%3c/svg%3e" alt="Doubao"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">豆包</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eWenxin%3c/title%3e%3cpath%20d='M11.32%201.176a1.4%201.4%200%20011.36%200l8.64%204.843c.421.234.68.67.68%201.141v9.68c0%20.472-.259.908-.68%201.143l-8.64%204.84a1.4%201.4%200%2001-1.36%200l-8.64-4.84A1.31%201.31%200%20012%2016.84V7.159c0-.471.259-.907.68-1.142l8.64-4.84zm7.42%2013.839V8.227L12.002%2012%2012%2019.551l6.059-3.394a1.31%201.31%200%2000.68-1.142zM12.68%204.833a1.393%201.393%200%2000-1.36%200L5.944%207.846c-.421.235-.68.67-.68%201.142v6.027c0%20.47.259.905.68%201.142l2.795%201.566V11.09a1.546%201.546%200%2000.221.79%201.527%201.527%200%2001-.216-.834l.004-.094.02-.15.018-.084.017-.062.039-.117.062-.142.035-.065.081-.13.094-.122.084-.091.08-.075.125-.1.071-.048.134-.076%205.87-3.29-2.796-1.566z'%20fill='url(%23lobe-icons-wenxin-fill)'%3e%3c/path%3e%3cpath%20d='M12%2011.088c0-.875-.73-1.584-1.631-1.584a1.66%201.66%200%2000-.855.237c-.027.016-.055.033-.08.05a2.361%202.361%200%2000-.123.093c-.022.02-.045.038-.066.059l-.048.045-.063.067c-.014.016-.028.031-.04.048a2.303%202.303%200%2000-.094.125l-.042.069a1.7%201.7%200%2000-.07.13l-.036.081a.764.764%200%2000-.022.06c-.01.03-.02.058-.028.087l-.017.062a.883.883%200%2000-.03.16c-.002.025-.007.05-.008.074a1.527%201.527%200%2000.213.929c.302.508.85.792%201.414.792.277%200%20.558-.068.814-.212l.815-.457v-.914L12%2011.088z'%20fill='%23012F8D'%3e%3c/path%3e%3cdefs%3e%3clinearGradient%20id='lobe-icons-wenxin-fill'%20x1='9.155%25'%20x2='90.531%25'%20y1='75.177%25'%20y2='25.028%25'%3e%3cstop%20offset='0%25'%20stop-color='%230A51C3'%3e%3c/stop%3e%3cstop%20offset='100%25'%20stop-color='%2323A4FB'%3e%3c/stop%3e%3c/linearGradient%3e%3c/defs%3e%3c/svg%3e" alt="Wenxin"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">文心一言</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20fill='currentColor'%20fill-rule='evenodd'%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eAnthropic%3c/title%3e%3cpath%20d='M13.827%203.52h3.603L24%2020h-3.603l-6.57-16.48zm-7.258%200h3.767L16.906%2020h-3.674l-1.343-3.461H5.017l-1.344%203.46H0L6.57%203.522zm4.132%209.959L8.453%207.687%206.205%2013.48H10.7z'%3e%3c/path%3e%3c/svg%3e" alt="Anthropic"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="/images/anthropic-2BQxoj0R.webp" alt="Anthropic"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Anthropic</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eChatGLM%3c/title%3e%3cdefs%3e%3clinearGradient%20id='lobe-icons-chatglm-fill'%20x1='-18.756%25'%20x2='70.894%25'%20y1='49.371%25'%20y2='90.944%25'%3e%3cstop%20offset='0%25'%20stop-color='%23504AF4'%3e%3c/stop%3e%3cstop%20offset='100%25'%20stop-color='%233485FF'%3e%3c/stop%3e%3c/linearGradient%3e%3c/defs%3e%3cpath%20d='M9.917%202c4.906%200%2010.178%203.947%208.93%2010.58-.014.07-.037.14-.057.21l-.003-.277c-.083-3-1.534-8.934-8.87-8.934-3.393%200-8.137%203.054-7.93%208.158-.04%204.778%203.555%208.4%207.95%208.332l.073-.001c1.2-.033%202.763-.429%203.1-1.657.063-.031.26.534.268.598.048.256.112.369.192.34.981-.348%202.286-1.222%201.952-2.38-.176-.61-1.775-.147-1.921-.347.418-.979%202.234-.926%203.153-.716.443.102.657.38%201.012.442.29.052.981-.2.96.242-1.5%203.042-4.893%205.41-8.808%205.41C3.654%2022%200%2016.574%200%2011.737%200%205.947%204.959%202%209.917%202zM9.9%205.3c.484%200%201.125.225%201.38.585%203.669.145%204.313%202.686%204.694%205.444.255%201.838.315%202.3.182%201.387l.083.59c.068.448.554.737.982.516.144-.075.254-.231.328-.47a.2.2%200%2001.258-.13l.625.22a.2.2%200%2001.124.238%202.172%202.172%200%2001-.51.92c-.878.917-2.757.664-3.08-.62-.14-.554-.055-.626-.345-1.242-.292-.621-1.238-.709-1.69-.295-.345.315-.407.805-.406%201.282L12.6%2015.9a.9.9%200%2001-.9.9h-1.4a.9.9%200%2001-.9-.9v-.65a1.15%201.15%200%2010-2.3%200v.65a.9.9%200%2001-.9.9H4.8a.9.9%200%2001-.9-.9l.035-3.239c.012-1.884.356-3.658%202.47-4.134.2-.045.252.13.29.342.025.154.043.252.053.294.701%203.058%201.75%204.299%203.144%203.722l.66-.331.254-.13c.158-.082.25-.131.276-.15.012-.01-.165-.206-.407-.464l-1.012-1.067a8.925%208.925%200%2001-.199-.216c-.047-.034-.116.068-.208.306-.074.157-.251.252-.272.326-.013.058.108.298.362.72.164.288.22.508-.31.343-1.04-.8-1.518-2.273-1.684-3.725-.004-.035-.162-1.913-.162-1.913a1.2%201.2%200%20011.113-1.281L9.9%205.3zm12.994%208.68c.037.697-.403.704-1.213.591l-1.783-.276c-.265-.053-.385-.099-.313-.147.47-.315%203.268-.93%203.31-.168zm-.915-.083l-.926.042c-.85.077-1.452.24.338.336l.103.003c.815.012%201.264-.359.485-.381zm1.667-3.601h.01c.79.398.067%201.03-.65%201.393-.14.07-.491.176-1.052.315-.241.04-.457.092-.333.16l.01.005c1.952.958-3.123%201.534-2.495%201.285l.38-.148c.68-.266%201.614-.682%201.666-1.337.038-.48%201.253-.442%201.493-.968.048-.106%200-.236-.144-.389-.05-.047-.094-.094-.107-.148-.073-.305.7-.431%201.222-.168zm-2.568-.474c-.135%201.198-2.479%204.192-1.949%202.863l.017-.042c.298-.717.376-2.221%201.337-3.221.25-.26.636.035.595.4zm-7.976-.253c.02-.694%201.002-.968%201.346-.347.01-1.274-1.941-.768-1.346.347z'%20fill='url(%23lobe-icons-chatglm-fill)'%20fill-rule='evenodd'%3e%3c/path%3e%3c/svg%3e" alt="ChatGLM"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">ChatGLM</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eClaude%3c/title%3e%3cpath%20d='M4.709%2015.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0%2011.784l.055-.352.48-.321.686.06%201.52.103%202.278.158%201.652.097%202.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686%201.908%201.476%202.491%201.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97%202.97%200%2001-.104-.729L6.283.134%206.696%200l.996.134.42.364.62%201.414%201.002%202.229%201.555%203.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286%201.851-.559%202.903-.364%201.942h.212l.243-.242.985-1.306%201.652-2.064.73-.82.85-.904.547-.431h1.033l.76%201.129-.34%201.166-1.064%201.347-.881%201.142-1.264%201.7-.79%201.36.073.11.188-.02%202.856-.606%201.543-.28%201.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061%201.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093%201.068%202.006%201.81%202.509%202.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649%202.345%203.521.122%201.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674%207.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434%201.967-2.18%202.945-1.726%201.845-.414.164-.717-.37.067-.662.401-.589%202.388-3.036%201.44-1.882.93-1.086-.006-.158h-.055L4.132%2018.56l-1.13.146-.487-.456.061-.746.231-.243%201.908-1.312-.006.006z'%20fill='%23D97757'%20fill-rule='nonzero'%3e%3c/path%3e%3c/svg%3e" alt="Claude"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Claude</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eGemini%3c/title%3e%3cdefs%3e%3clinearGradient%20id='lobe-icons-gemini-fill'%20x1='0%25'%20x2='68.73%25'%20y1='100%25'%20y2='30.395%25'%3e%3cstop%20offset='0%25'%20stop-color='%231C7DFF'%3e%3c/stop%3e%3cstop%20offset='52.021%25'%20stop-color='%231C69FF'%3e%3c/stop%3e%3cstop%20offset='100%25'%20stop-color='%23F0DCD6'%3e%3c/stop%3e%3c/linearGradient%3e%3c/defs%3e%3cpath%20d='M12%2024A14.304%2014.304%200%20000%2012%2014.304%2014.304%200%200012%200a14.305%2014.305%200%200012%2012%2014.305%2014.305%200%2000-12%2012'%20fill='url(%23lobe-icons-gemini-fill)'%20fill-rule='nonzero'%3e%3c/path%3e%3c/svg%3e" alt="Gemini"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Gemini</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="/images/meta-color-Dvadn2zR.svg" alt="Meta"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Meta</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eMistral%3c/title%3e%3cpath%20d='M3.428%203.4h3.429v3.428H3.428V3.4zm13.714%200h3.43v3.428h-3.43V3.4z'%20fill='gold'%3e%3c/path%3e%3cpath%20d='M3.428%206.828h6.857v3.429H3.429V6.828zm10.286%200h6.857v3.429h-6.857V6.828z'%20fill='%23FFAF00'%3e%3c/path%3e%3cpath%20d='M3.428%2010.258h17.144v3.428H3.428v-3.428z'%20fill='%23FF8205'%3e%3c/path%3e%3cpath%20d='M3.428%2013.686h3.429v3.428H3.428v-3.428zm6.858%200h3.429v3.428h-3.429v-3.428zm6.856%200h3.43v3.428h-3.43v-3.428z'%20fill='%23FA500F'%3e%3c/path%3e%3cpath%20d='M0%2017.114h10.286v3.429H0v-3.429zm13.714%200H24v3.429H13.714v-3.429z'%20fill='%23E10500'%3e%3c/path%3e%3c/svg%3e" alt="Mistral"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Mistral</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20fill='currentColor'%20fill-rule='evenodd'%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eOllama%3c/title%3e%3cpath%20d='M7.905%201.09c.216.085.411.225.588.41.295.306.544.744.734%201.263.191.522.315%201.1.362%201.68a5.054%205.054%200%20012.049-.636l.051-.004c.87-.07%201.73.087%202.48.474.101.053.2.11.297.17.05-.569.172-1.134.36-1.644.19-.52.439-.957.733-1.264a1.67%201.67%200%2001.589-.41c.257-.1.53-.118.796-.042.401.114.745.368%201.016.737.248.337.434.769.561%201.287.23.934.27%202.163.115%203.645l.053.04.026.019c.757.576%201.284%201.397%201.563%202.35.435%201.487.216%203.155-.534%204.088l-.018.021.002.003c.417.762.67%201.567.724%202.4l.002.03c.064%201.065-.2%202.137-.814%203.19l-.007.01.01.024c.472%201.157.62%202.322.438%203.486l-.006.039a.651.651%200%2001-.747.536.648.648%200%2001-.54-.742c.167-1.033.01-2.069-.48-3.123a.643.643%200%2001.04-.617l.004-.006c.604-.924.854-1.83.8-2.72-.046-.779-.325-1.544-.8-2.273a.644.644%200%2001.18-.886l.009-.006c.243-.159.467-.565.58-1.12a4.229%204.229%200%2000-.095-1.974c-.205-.7-.58-1.284-1.105-1.683-.595-.454-1.383-.673-2.38-.61a.653.653%200%2001-.632-.371c-.314-.665-.772-1.141-1.343-1.436a3.288%203.288%200%2000-1.772-.332c-1.245.099-2.343.801-2.67%201.686a.652.652%200%2001-.61.425c-1.067.002-1.893.252-2.497.703-.522.39-.878.935-1.066%201.588a4.07%204.07%200%2000-.068%201.886c.112.558.331%201.02.582%201.269l.008.007c.212.207.257.53.109.785-.36.622-.629%201.549-.673%202.44-.05%201.018.186%201.902.719%202.536l.016.019a.643.643%200%2001.095.69c-.576%201.236-.753%202.252-.562%203.052a.652.652%200%2001-1.269.298c-.243-1.018-.078-2.184.473-3.498l.014-.035-.008-.012a4.339%204.339%200%2001-.598-1.309l-.005-.019a5.764%205.764%200%2001-.177-1.785c.044-.91.278-1.842.622-2.59l.012-.026-.002-.002c-.293-.418-.51-.953-.63-1.545l-.005-.024a5.352%205.352%200%2001.093-2.49c.262-.915.777-1.701%201.536-2.269.06-.045.123-.09.186-.132-.159-1.493-.119-2.73.112-3.67.127-.518.314-.95.562-1.287.27-.368.614-.622%201.015-.737.266-.076.54-.059.797.042zm4.116%209.09c.936%200%201.8.313%202.446.855.63.527%201.005%201.235%201.005%201.94%200%20.888-.406%201.58-1.133%202.022-.62.375-1.451.557-2.403.557-1.009%200-1.871-.259-2.493-.734-.617-.47-.963-1.13-.963-1.845%200-.707.398-1.417%201.056-1.946.668-.537%201.55-.849%202.485-.849zm0%20.896a3.07%203.07%200%2000-1.916.65c-.461.37-.722.835-.722%201.25%200%20.428.21.829.61%201.134.455.347%201.124.548%201.943.548.799%200%201.473-.147%201.932-.426.463-.28.7-.686.7-1.257%200-.423-.246-.89-.683-1.256-.484-.405-1.14-.643-1.864-.643zm.662%201.21l.004.004c.12.151.095.37-.056.49l-.292.23v.446a.375.375%200%2001-.376.373.375.375%200%2001-.376-.373v-.46l-.271-.218a.347.347%200%2001-.052-.49.353.353%200%2001.494-.051l.215.172.22-.174a.353.353%200%2001.49.051zm-5.04-1.919c.478%200%20.867.39.867.871a.87.87%200%2001-.868.871.87.87%200%2001-.867-.87.87.87%200%2001.867-.872zm8.706%200c.48%200%20.868.39.868.871a.87.87%200%2001-.868.871.87.87%200%2001-.867-.87.87.87%200%2001.867-.872zM7.44%202.3l-.003.002a.659.659%200%2000-.285.238l-.005.006c-.138.189-.258.467-.348.832-.17.692-.216%201.631-.124%202.782.43-.128.899-.208%201.404-.237l.01-.001.019-.034c.046-.082.095-.161.148-.239.123-.771.022-1.692-.253-2.444-.134-.364-.297-.65-.453-.813a.628.628%200%2000-.107-.09L7.44%202.3zm9.174.04l-.002.001a.628.628%200%2000-.107.09c-.156.163-.32.45-.453.814-.29.794-.387%201.776-.23%202.572l.058.097.008.014h.03a5.184%205.184%200%20011.466.212c.086-1.124.038-2.043-.128-2.722-.09-.365-.21-.643-.349-.832l-.004-.006a.659.659%200%2000-.285-.239h-.004z'%3e%3c/path%3e%3c/svg%3e" alt="Ollama"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors dark:tw-hidden" srcset="" />
+                <img src="/images/ollama-C_bjFTTg.webp" alt="Ollama"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors tw-hidden dark:tw-block"
+                    srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Ollama</span>
+            </div>
+            <div class="reveal-up tw-flex tw-gap-2 tw-items-center">
+                <img src="data:image/svg+xml,%3csvg%20height='1em'%20style='flex:none;line-height:1'%20viewBox='0%200%2024%2024'%20width='1em'%20xmlns='http://www.w3.org/2000/svg'%3e%3ctitle%3eSpark%3c/title%3e%3cpath%20d='M2%2013.08C2%209.182%204.772%206.367%209.32%202.122c-.65%207.883%206.41%208.272%205.023%2012.214-.99%202.815-4.244%201.949-4.59%201.342%200%200%201.212.347%201.385-.866.174-1.213-2.252-1.862-3.81-4.937-2.6%202.988-.954%209.008%204.2%209.008%204.764%200%206.583-4.937%204.894-8.099%200%200%204.071.693%204.418%203.811.346%203.119-3.638%208.533-9.095%208.403C6.288%2022.868%202%2018.84%202%2013.08z'%20fill='%233DC8F9'%3e%3c/path%3e%3cpath%20d='M17.852%206.107L11.615%200c-.52%205.933.866%208.374%204.894%209.485%202.729.753%203.307%201.04%204.504%202.772-.338-2.407-.78-3.812-3.161-6.15z'%20fill='%23EA0100'%3e%3c/path%3e%3cpath%20clip-rule='evenodd'%20d='M9.033%2018.323c.709.354%201.542.56%202.495.56%204.764%200%206.583-4.937%204.894-8.099%200%200%204.071.693%204.418%203.811.156%201.403-.565%203.27-1.902%204.89-3.458%201.57-7.29.84-9.905-1.162z'%20fill='%231652D8'%20fill-rule='evenodd'%3e%3c/path%3e%3c/svg%3e" alt="Spark"
+                    class="tw-h-[50px] tw-w-[50px] tw-object-contain tw-transition-colors" srcset="" />
+                <span class="tw-text-2xl tw-font-bold">Spark</span>
+            </div>
+        </div>
+    </section>
+
+    <section
+        class="tw-relative tw-mt-10 tw-flex tw-min-h-[100vh] tw-w-full tw-max-w-[100vw] tw-flex-col tw-place-items-center lg:tw-p-6">
+
+        <div class="reveal-up tw-mt-[5%] tw-flex tw-h-full tw-w-full tw-place-content-center 
+                        tw-gap-2 tw-p-4 max-lg:tw-max-w-full max-lg:tw-flex-col">
+
+            <div class="tw-relative tw-flex tw-max-w-[30%] max-lg:tw-max-w-full tw-flex-col 
+                            tw-place-items-start tw-gap-4  tw-p-2 max-lg:tw-place-items-center 
+                            max-lg:tw-place-content-center max-lg:tw-w-full">
+                <div
+                    class="tw-top-40 tw-flex tw-flex-col lg:tw-sticky tw-place-items-center tw-max-h-fit tw-max-w-[850px] max-lg:tw-max-h-fit max-lg:tw-max-w-[320px] tw-overflow-hidden">
+                    <h2 class="tw-text-5xl tw-font-serif tw-text-center tw-font-medium  max-md:tw-text-3xl">
+                        完善的知识库流程
+                    </h2>
+                </div>
+
+                <div
+                    class="purple-bg-grad reveal-up lg:tw-sticky tw-top-[30%] tw-left-[20%] tw-h-[150px] tw-w-[150px] tw-rounded-full">
+                </div>
+            </div>
+
+            <div class="tw-flex tw-flex-col tw-gap-10 tw-h-full tw-max-w-1/2 max-lg:tw-max-w-full tw-px-[10%]
+                             max-lg:tw-px-4 max-lg:tw-gap-3 max-lg:tw-w-full lg:tw-top-[20%]
+                             tw-place-items-center
+                             ">
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all
+                                  tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-cloud-upload"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                上传文档
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                支持多种格式文档上传，包括PDF、Word、Txt等常用文档格式。通过简单的点击即可完成文档上传，为知识库建设提供便捷的数据输入方式。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl
+                                 hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-upc-scan"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                提取分割文档
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会自动对上传的文档进行智能分析和分割，将长文本拆分成适当大小的片段。这种分割方式既保持了文本的语义完整性，又能确保后续处理的准确性和效率。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl hover:tw-shadow-lg tw-duration-300 
+                                tw-transition-all dark:tw-shadow-[#171717] tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-credit-card-2-front"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                文本向量化
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统采用先进的向量化技术，将文本内容转换为高维向量表示。这种转换保留了文本的语义信息，使得后续的相似度计算和检索更加准确和高效。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full dark:tw-shadow-[#171717] tw-h-full tw-gap-8 tw-rounded-xl  hover:tw-shadow-lg tw-duration-300 
+                            tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-menu-down"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                问题向量化
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会将用户输入的问题同样转换为向量形式，这种转换确保了问题和文档片段之间的语义匹配更加准确，从而能够找到最相关的答案。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#" class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl dark:tw-shadow-[#171717] hover:tw-shadow-lg tw-duration-300 
+                                tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-shadows"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                混合检索
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统采用混合检索策略，结合关键词匹配和语义相似度计算，从而在保证检索准确性的同时提高检索效率，为用户提供最相关的答案。
+                            </p>
+
+                        </div>
+                    </a>
+                </div>
+
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-inboxes"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                获取提示词
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会根据用户的输入内容，自动生成相应的提示词，这些提示词将用于引导大模型生成更加准确和相关的回答。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-cookie"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                提交大模型
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统将用户的输入内容和生成的提示词提交给大模型，通过优化的提示工程技术，引导大模型生成高质量的回答。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+                <div class="reveal-up tw-h-[240px] tw-w-[450px] max-md:tw-w-full">
+                    <a href="#"
+                        class="tw-flex tw-w-full tw-h-full tw-gap-8 tw-rounded-xl 
+                                    hover:tw-shadow-lg dark:tw-shadow-[#171717] tw-duration-300 tw-transition-all tw-p-8 tw-group/card">
+                        <div class="tw-text-4xl max-md:tw-text-2xl">
+                            <i class="bi bi-text-wrap"></i>
+                        </div>
+
+                        <div class="tw-flex tw-flex-col tw-gap-4">
+                            <h3 class="tw-text-2xl max-md:tw-text-xl">
+                                输出结果
+                            </h3>
+                            <p class="tw-text-gray-800 dark:tw-text-gray-100 max-md:tw-text-sm">
+                                系统会根据大模型生成的结果，以用户友好的方式展示输出内容，包括文本、图像等多种形式的信息展示。
+                            </p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div
+            class="purple-bg-grad reveal-up tw-absolute tw-bottom-[40%] tw-right-[20%] tw-h-[200px] tw-w-[200px] tw-rounded-full ">
+        </div>
+    </section>
+
+
+    <section
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[110vh] max-md:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full max-lg:tw-max-w-full tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                丰富的功能
+            </h3>
+
+            <div
+                class="tw-mt-8 tw-relative tw-gap-10 tw-p-4 tw-grid tw-place-items-center tw-grid-cols-3 max-lg:tw-flex max-lg:tw-flex-col">
+
+
+                <div
+                    class="reveal-up  tw-w-[350px] tw-border-[1px] tw-h-[400px] tw-rounded-md tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] max-md:tw-w-[320px] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/chat-BgWU0kFD.png" alt="Prompt library"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        聊天助手
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        基于大语言模型和RAG技术的智能对话助手，可以结合您的知识库进行对话，让大模型更懂你的需求，使您的工作效率倍增。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/chat-history-B026pcrj.png" alt="Multilingual"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        聊天记录
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        支持聊天记录查看，通过日期和内容进行筛选，方便用户进行历史记录的查看和分析。
+                    </p>
+                </div>
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-md tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/knowledge-base-DjqeczP3.png" alt="knowledge-base"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        知识库管理
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        提供完整的知识库管理功能，包括文档上传、内容提取、向量化存储等。支持多种格式文档导入，自动建立索引，让您的知识资产得到高效管理和利用。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/org-tag-DqnCXVcY.png" alt="org-tag"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        组织标签
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        通过组织标签进行知识库和数据权限分类管理，支持多级标签体系，方便用户进行数据筛选和权限控制。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                     tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/user-BvmAOVQc.png" alt="user"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        用户管理
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        采用基于角色的权限管理，支持多级管理员和用户权限设置，确保数据安全和隐私保护。
+                    </p>
+                </div>
+
+                <div
+                    class="reveal-up tw-w-[350px] max-md:tw-w-[320px] tw-border-[1px] tw-h-[400px] tw-rounded-lg tw-place-items-center tw-p-4
+                                 tw-bg-[#f2f3f4] dark:tw-bg-[#141414] dark:tw-border-[#1f2123] tw-flex tw-flex-col tw-gap-3">
+
+                    <div class="tw-w-full tw-h-[250px]
+                                    tw-p-4
+                                    tw-rounded-xl 
+                                     tw-backdrop-blur-2xl
+                                     tw-overflow-hidden tw-flex tw-place-content-center">
+                        <img src="/images/personal-CJIfrITE.png" alt="personal"
+                            class="tw-w-auto tw-h-full tw-object-contain">
+                    </div>
+                    <h3 class="tw-text-2xl">
+                        个人中心
+                    </h3>
+                    <p class="tw-text-gray-700 dark:tw-text-gray-300 tw-px-4 tw-text-center tw-text-sm">
+                        展示用户组织标签，支持默认标签管理，支持用户信息修改。
+                    </p>
+                </div>
+
+
+            </div>
+
+        </div>
+    </section>
+
+    <section id="rag"
+        class="tw-relative tw-flex  tw-w-full tw-min-h-[100vh] max-md:tw-min-h-[80vh] tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="tw-w-full max-lg:tw-max-w-full tw-place-content-center tw-place-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                检索增强生成
+            </h3>
+            <p class="reveal-up tw-mt-3 tw-max-w-[800px] tw-text-center ">
+                检索增强生成（RAG）是一种先进的AI技术，它结合了检索和生成两种方法，以实现更准确和相关的回答。
+                传统的检索方法通常只能返回与查询关键词匹配的文档片段，而生成方法则需要大模型根据查询内容生成回答。
+                检索增强生成技术通过结合这两种方法，实现了更准确和相关的回答。
+                首先，系统会根据用户的查询内容，从知识库中检索出最相关的文档片段。
+                然后，系统会使用大模型根据检索出的文档片段生成回答。
+                这种方法不仅能够实现更准确和相关的回答，还能够提高回答的效率和质量。
+            </p>
+
+            <div class="tw-mt-8 tw-relative tw-flex max-lg:tw-flex-col tw-gap-5">
+
+                <div
+                    class="reveal-up tw-flex tw-w-full max-md:tw-max-w-full tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-2 tw-shadow-xl max-lg:tw-w-[320px] ">
+                    <img src="/images/vector-database-D8G5RJrR.png" alt="vector-database"
+                        class="tw-max-w-[650px] tw-max-h-[400px] tw-object-center">
+                </div>
+
+                <div
+                    class="reveal-up tw-flex tw-w-full tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-2 tw-shadow-xl max-lg:tw-w-[320px]">
+                    <img src="/images/rag-BaHfebul.png" alt="rag"
+                        class="tw-max-w-[650px] tw-max-h-[400px] tw-object-center">
+                </div>
+
+            </div>
+        </div>
+    </section>
+    <!-- 
+    <section
+        class="tw-flex tw-min-h-[100vh] tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-p-[2%]">
+        <h3 class="reveal-up tw-text-4xl tw-font-medium tw-text-center max-md:tw-text-2xl">
+            Join the professionals using Pixa
+        </h3>
+        <div class="tw-mt-20 tw-gap-10 tw-space-y-8  max-md:tw-columns-1 lg:tw-columns-2 xl:tw-columns-3">
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man2.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Mante</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Glu, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem ipsum dolor sit amet consectetur adipisicing elit. Magnam dolore deleniti
+                    iusto Numquam!
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/women.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="women" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Trich B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">AMI, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem ipsum dolor sit amet.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">John B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Benz, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Ea, expedita nihil repellendus accusamus
+                    itaque facere labore, suscipit tempore in harum repellat. Doloribus, dolor facere dolorem impedit
+                    facilis rerum beatae exercitationem aliquid porro ea architecto similique illo omnis odio
+                    consequatur modi.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man2.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Ben Alfert B</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">XZ tech, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/women.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="women" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Rachel</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">Gem, cto</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor sit amet consectetur, adipisicing
+                    elit. Beatae, vero. Lorem, ipsum dolor.
+                </p>
+            </div>
+
+            <div class="reveal-up tw-flex tw-h-fit tw-w-[350px] tw-break-inside-avoid 
+                        tw-flex-col tw-gap-4 tw-rounded-lg tw-border-[1px] 
+                        tw-bg-[#f6f7fb] dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-4 max-lg:tw-w-[320px]">
+
+                <div class="tw-flex tw-place-items-center tw-gap-3">
+                    <div class="tw-h-[50px] tw-w-[50px] tw-overflow-hidden tw-rounded-full">
+                        <img src="./assets/images/people/man.jpg" class="tw-h-full tw-w-full tw-object-cover"
+                            alt="man" />
+                    </div>
+                    <div class="tw-flex tw-flex-col tw-gap-1">
+                        <div class="tw-font-semibold">Jamie</div>
+                        <div class="tw-text-gray-700 dark:tw-text-gray-300">SnapFist.ai, ceo</div>
+                    </div>
+                </div>
+
+                <p class="tw-mt-4 tw-text-gray-800 dark:tw-text-gray-200">
+                    Lorem ipsum dolor, sit amet consectetur adipisicing elit. Est, nihil vitae fuga ab reiciendis optio
+                    et corporis dolorem alias deserunt, molestias in iusto! Ratione, quisquam incidunt. Reprehenderit
+                    ipsam officiis enim.
+                </p>
+            </div>
+
+        </div>
+    </section> -->
+
+    <!-- 
+    <section class="tw-mt-5 tw-flex tw-w-full tw-flex-col tw-gap-6 tw-place-items-center tw-p-[2%]" id="pricing">
+        <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-2xl">
+            不同的付费方案
+        </h3>
+        <div class="tw-mt-10 tw-flex tw-flex-wrap tw-place-content-center tw-gap-8 max-lg:tw-flex-col">
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl tw-font-semibold">￥9</span>
+                    <span class="tw-text-2xl tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-100">
+                    Essential AI tools for everyday use
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4 tw-text-base tw-text-gray-800 dark:tw-text-gray-200">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>1,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>30 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>10 premium music generation</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#" class="btn tw-mt-auto !tw-w-full tw-transition-transform tw-duration-[0.3s] 
+                                hover:tw-scale-x-[1.02] !tw-text-black !tw-bg-transparent !tw-border-[1px]
+                                 tw-border-black dark:tw-border-white dark:!tw-text-white">
+                    Choose plan
+                </a>
+            </div>
+
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-2
+                            tw-border-outlineColor tw-bg-white dark:tw-bg-[#080808] dark:tw-border-[#595858] tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl  tw-font-semibold">￥17</span>
+                    <span class="tw-text-2xl max-md:tw-text-xl  tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-200">
+                    Advanced features for serious AI enthusiasts.
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4  tw-text-base tw-text-gray-800 dark:tw-text-gray-100">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>5,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>100 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>40 premium music generation</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill tw-text-gray-400 dark:tw-text-gray-500"></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#"
+                    class="btn tw-mt-auto !tw-w-full tw-transition-transform tw-duration-[0.3s] hover:tw-scale-x-[1.02]">
+                    Choose plan
+                </a>
+            </div>
+
+            <div
+                class="reveal-up tw-flex tw-w-[350px] tw-flex-col tw-place-items-center tw-gap-2 tw-rounded-lg tw-border-[1px]
+                            tw-border-outlineColor dark:tw-bg-[#080808] dark:tw-border-[#1f2123] tw-bg-white tw-p-8 tw-shadow-xl max-lg:tw-w-[320px]">
+                <h3 class="">
+                    <span class="tw-text-5xl max-md:tw-text-3xl tw-font-semibold">￥29</span>
+                    <span class="tw-text-2xl tw-text-gray-600 dark:tw-text-gray-300">/永久</span>
+                </h3>
+                <p class="tw-mt-3 tw-text-center tw-text-gray-800 dark:tw-text-gray-100">
+                    Unlimited potential for power users
+                </p>
+                <hr />
+                <ul class="tw-mt-4 tw-flex tw-flex-col tw-gap-4 tw-text-base 
+                                tw-text-gray-800 dark:tw-text-gray-200">
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>10,000 AI powered chat messages</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>300 premium image generations</span>
+                    </li>
+                    <li class="tw-flex tw-gap-2">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>100 premium music generations</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span>Access to all premium AI models</span>
+                    </li>
+
+                    <li class="tw-flex tw-gap-2 ">
+                        <i class="bi bi-check-circle-fill "></i>
+                        <span>Early access to new features</span>
+                    </li>
+
+                </ul>
+                <a href="#" class="btn tw-mt-8 !tw-w-full tw-transition-transform tw-duration-[0.3s] 
+                                hover:tw-scale-x-[1.02] !tw-text-black !tw-bg-transparent 
+                                !tw-border-[1px] tw-border-black dark:tw-border-white dark:!tw-text-white">
+                    Choose plan
+                </a>
+            </div>
+        </div>
+    </section> -->
+
+    <section id="association"
+        class="tw-mt-5 tw-flex tw-min-h-[80vh] tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-p-[2%] max-lg:tw-p-3">
+        <h3 class="reveal-up tw-text-4xl tw-font-medium max-md:tw-text-2xl">
+            活跃的社区支持 ✨
+        </h3>
+        <!-- articles -->
+
+        <div class="reveal-up tw-mt-10 tw-flex tw-flex-wrap tw-place-content-center tw-gap-10 max-lg:tw-flex-col">
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="/images/weixin-BwBj_sd9.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        专属的VIP微信社群
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    和数千名二哥好友一起交流学习
+                </h3>
+
+            </a>
+
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="/images/zsxq-B66M-JVH.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        活跃的星球社区
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    获得二哥专属的VIP服务
+                </h3>
+
+            </a>
+
+            <a href="#"
+                class="tw-flex tw-h-[500px] tw-w-[400px] tw-flex-col tw-gap-2 tw-overflow-clip tw-rounded-lg tw-p-4 max-lg:tw-w-[350px]">
+                <div class="tw-h-[350px] tw-min-h-[350px] tw-w-full tw-overflow-hidden tw-rounded-2xl">
+                    <img src="/images/paicoding-CrHrC4yJ.png" alt="article image"
+                        class="tw-h-full tw-w-full tw-object-cover tw-transition-transform tw-duration-700 hover:tw-scale-[1.3]"
+                        srcset="" />
+                </div>
+
+                <div class="tw-text-gray-600 dark:tw-text-gray-300 tw-justify-between tw-flex tw-gap-2">
+                    <div class="tw-text-gray-800 dark:tw-text-gray-200">
+                        丰富的项目支持
+                    </div>
+                </div>
+                <h3 class="tw-mt-1 tw-font-medium tw-text-xl max-md:tw-text-xl">
+                    学习不同技术栈的实战项目
+                </h3>
+
+            </a>
+
+        </div>
+
+    </section>
+
+    <section
+        class="tw-relative tw-flex tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-gap-[10%] tw-p-[5%] tw-px-[10%]">
+
+
+        <h3 class="tw-text-4xl tw-font-medium max-md:tw-text-2xl">
+            常见问题
+        </h3>
+        <div class="tw-mt-5 tw-flex tw-min-h-[300px] tw-w-full tw-max-w-[850px] tw-flex-col tw-gap-4">
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明RAG知识库是什么？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    派聪明源自于技术派又独立于技术派，主打的服务是利用 RAG 技术和 AI 大模型进行聊天对话。派聪明通过 RAG
+                    技术将用户的知识库与大语言模型结合，让用户可以基于自己的知识进行智能对话。用户可以轻松上传文档、网页等内容构建知识库，系统会自动处理并建立索引，让 AI 可以准确理解和回答相关问题。
+                </div>
+            </div>
+            <hr>
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明能让大家学到什么？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    通过派聪明，你可以学习到 大模型应用的开发落地经验、主流的企业级Java技术栈，提高自身对于RAG技术、AI大模型、知识库构建、智能对话等技术的综合应用能力。
+                </div>
+            </div>
+            <hr>
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明如何写到简历上？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    对于初学者，在简历上可以突出以下几点：1. 项目完整的设计与实现过程，包括需求分析、技术选型、架构设计等；2. 作为练手项目的具体收获，如RAG技术的实践经验、大模型应用开发等；3.
+                    项目实际部署和应用场景，比如为班级或实验室搭建私有知识库，解决了哪些实际问题。通过这些要点，展现自己的技术能力和项目经验。
+                </div>
+            </div>
+            <hr>
+
+            <div class="faq tw-w-full">
+                <h4 class="faq-accordion tw-flex tw-w-full tw-select-none tw-text-xl max-md:tw-text-lg">
+                    <span>派聪明包含哪些功能模块？</span>
+                    <i class="bi bi-plus tw-text-xl tw-origin-center tw-duration-300 tw-transition-transform 
+                                    tw-ml-auto tw-font-semibold"></i>
+                </h4>
+                <div class="content max-lg:tw-text-sm">
+                    派聪明主要包含有聊天助手、聊天记录、知识库、组织标签、用户管理、个人中心等功能模块。相关功能的实现即涵盖了基础的Java技术栈，又包含了RAG知识库的构建与应用。
+                </div>
+            </div>
+            <hr>
+
+        </div>
+        <div
+            class="purple-bg-grad reveal-up tw-absolute tw-bottom-14 tw-right-[20%] tw-h-[150px] tw-w-[150px] tw-rounded-full">
+        </div>
+
+    </section>
+    <!-- 
+    <section
+        class="tw-relative tw-flex tw-p-2  tw-w-full tw-min-h-[60vh]  tw-flex-col tw-place-content-center tw-place-items-center tw-overflow-hidden">
+        <div class="reveal-up tw-w-full tw-h-full tw-min-h-[450px] max-lg:tw-max-w-full tw-rounded-md lg:tw-py-[5%] tw-bg-[#f6f7fb] dark:tw-bg-[#171717] tw-place-content-center tw-items-center 
+                        tw-flex tw-flex-col tw-max-w-[80%] tw-gap-4 tw-p-4">
+
+            <h3 class="reveal-up tw-text-5xl tw-font-medium max-md:tw-text-3xl tw-text-center tw-leading-normal">
+                Access and compare multiple AI models
+            </h3>
+
+            <div class="tw-mt-8 tw-relative tw-flex max-lg:tw-flex-col tw-gap-5">
+
+                <a href="#" class="btn  reveal-up !tw-rounded-full !tw-p-4 tw-font-medium">
+                    Launch Playground
+                </a>
+            </div>
+
+        </div>
+    </section>
+
+    <section
+        class="tw-flex tw-w-full tw-flex-col tw-place-content-center tw-place-items-center tw-gap-[10%] tw-p-[5%] tw-px-[10%] max-md:tw-px-2">
+        <div
+            class="tw-flex tw-w-full tw-max-w-[80%] tw-place-content-center tw-place-items-center tw-justify-between tw-gap-3 
+                        tw-rounded-lg tw-bg-[#F6F7FB] dark:tw-bg-[#171717] tw-p-6 max-md:tw-max-w-full max-md:tw-flex-col">
+            <div class="tw-flex tw-flex-col max-lg:tw-text-center tw-gap-1">
+                <h2 class="tw-text-2xl tw-text-gray-800 dark:tw-text-gray-200 max-md:tw-text-xl">
+                    Join our newsletter
+                </h2>
+                <div class="tw-text-gray-700 dark:tw-text-gray-300">Get product insights and updates.</div>
+            </div>
+
+            <div class="tw-flex tw-h-[60px] tw-place-items-center tw-gap-2 tw-overflow-hidden tw-p-2">
+                <input type="email" class="input tw-h-full tw-w-full !tw-border-gray-600 tw-p-2 tw-outline-none"
+                    placeholder="email" />
+                <a class="btn !tw-rounded-full !tw-border-[1px] !tw-text-black !tw-border-solid !tw-border-black  dark:!tw-text-white
+                            dark:!tw-border-gray-300 !tw-bg-transparent tw-transition-colors tw-duration-[0.3s]"
+                    href="">
+                    Signup
+                </a>
+            </div>
+        </div>
+    </section> -->
+
+    <footer class="tw-mt-auto tw-flex tw-flex-col tw-w-full tw-gap-4 tw-text-sm tw-pt-[5%] tw-pb-10 tw-px-[10%] 
+                    tw-text-black dark:tw-text-white max-md:tw-flex-col">
+        <div class="tw-flex max-md:tw-flex-col max-md:tw-gap-6 tw-gap-3 tw-w-full tw-place-content-around">
+            <div class="tw-flex tw-h-full tw-w-[250px] tw-flex-col tw-place-items-center tw-gap-6 max-md:tw-w-full">
+                <a href="#" class="tw-w-full tw-place-items-center tw-flex tw-flex-col tw-gap-4">
+                    <img src="data:image/png;base64,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" alt="logo" srcset="" class="tw-max-w-[120px]" />
+                    <div class="tw-max-w-[250px] tw-text-center tw-text-3xl tw-h-fit">
+                        派聪明
+                    </div>
+                </a>
+            </div>
+
+            <div class="tw-flex max-md:tw-flex-col tw-flex-wrap tw-gap-6 tw-h-full tw-w-full tw-justify-around">
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">项目</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://github.com/itwanger" class="footer-link">GitHub</a>
+                        <a href="https://paicoding.com/" class="footer-link">PaiCoding</a>
+                        <a href="https://github.com/laigeoffer/pmhub" class="footer-link">PmHub</a>
+                        <a href="https://github.com/itwanger/toBeBetterJavaer" class="footer-link">ToBeBetterJavaer</a>
+                    </div>
+                </div>
+
+
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">资源</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://www.deepseek.com/" class="footer-link">DeepSeek</a>
+                        <a href="https://www.tongyi.com/" class="footer-link">通义千问</a>
+                        <a href="https://www.doubao.com/" class="footer-link">豆包</a>
+                        <a href="https://openai.com/" class="footer-link">OpenAI</a>
+                    </div>
+                </div>
+
+                <div class="tw-flex tw-h-full tw-w-[200px] tw-flex-col tw-gap-4">
+                    <h2 class="tw-text-xl">其他</h2>
+                    <div class="tw-flex tw-flex-col tw-gap-3">
+                        <a href="https://javabetter.cn/zhishixingqiu/" class="footer-link" target="_blank">知识星球</a>
+                        <a href="#" class="footer-link">微信：qing_gee</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr class="tw-mt-8">
+        <div class="tw-mt-2 tw-flex tw-gap-2 tw-flex-col tw-text-gray-700 dark:tw-text-gray-300 tw-place-items-center 
+                    tw-text-[14px] tw-w-full tw-text-center tw-place-content-around">
+            <span>Copyright &#169; 2025 Pai Smart. All Rights Reserved.</span>
+        </div>
+    </footer>
+</body>
+
+<script src="/js/gsap.min.js"></script>
+<script src="/js/ScrollTrigger.min.js"></script>
+<script src="/js/typed.min.js"></script>
+<script src="/js/particles.min.js"></script>
+
+
+
+<script>
+    // 本地缓存相关函数
+    function saveStarsToCache(starsCount) {
+        try {
+            const cacheData = {
+                count: starsCount,
+                timestamp: Date.now()
+            }
+            localStorage.setItem('github-stars-cache', JSON.stringify(cacheData))
+        } catch (error) {
+            console.error('Failed to save stars to cache:', error)
+        }
+    }
+
+    function getStarsFromCache() {
+        try {
+            const cached = localStorage.getItem('github-stars-cache')
+            if (!cached) return null
+
+            const cacheData = JSON.parse(cached)
+            const now = Date.now()
+            const cacheAge = now - cacheData.timestamp
+            const maxAge = 1 * 60 * 60 * 1000 // 1小时缓存
+
+            // 如果缓存未过期，返回缓存的数据
+            if (cacheAge < maxAge) {
+                return cacheData.count
+            }
+
+            // 缓存过期，删除缓存
+            localStorage.removeItem('github-stars-cache')
+            return null
+        } catch (error) {
+            console.error('Failed to get stars from cache:', error)
+            return null
+        }
+    }
+
+    function updateStarsDisplay(starsCount) {
+        const githubStar = document.getElementById('github-star')
+        if (!githubStar.querySelector('.stars-count')) {
+            githubStar.insertAdjacentHTML('beforeend', `<span>starred<span class="stars-count tw-ml-1">${starsCount}</span></span>`)
+        }
+    }
+
+    async function fetchGitHubStars() {
+        try {
+            // 首先尝试从缓存获取数据
+            const cachedStars = getStarsFromCache()
+            if (cachedStars !== null) {
+                updateStarsDisplay(cachedStars)
+                console.log('Using cached stars count:', cachedStars)
+            }
+
+            // 无论是否有缓存，都尝试从API获取最新数据
+            const response = await fetch('https://api.github.com/repos/itwanger/PaiSmart')
+            if (!response.ok) throw new Error('Network response was not ok')
+            const data = await response.json()
+
+            // 更新显示
+            updateStarsDisplay(data.stargazers_count)
+
+            // 保存到缓存
+            saveStarsToCache(data.stargazers_count)
+
+            console.log('Updated stars count from API:', data.stargazers_count)
+        } catch (error) {
+            console.error('Failed to fetch GitHub stars:', error)
+
+            // 如果API请求失败且没有缓存，显示默认值
+            const cachedStars = getStarsFromCache()
+            if (cachedStars === null) {
+                updateStarsDisplay('0')
+            }
+        }
+    }
+
+    // 页面加载后自动调用
+    document.addEventListener('DOMContentLoaded', fetchGitHubStars);
+</script>
+
+</html>

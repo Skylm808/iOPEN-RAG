@@ -1,0 +1,30 @@
+{
+  "name": "landing-pages",
+  "version": "1.0.0",
+  "description": "beautiful landing pages",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tw:dev": "cross-env NODE_ENV=development tailwindcss  -i css/tailwind.css -o css/tailwind-runtime.css -w",
+    "tw:build": "cross-env NODE_ENV=production tailwindcss  -i css/tailwind.css -o css/tailwind.min.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "landing",
+    "pages",
+    "motion",
+    "design",
+    "websites"
+  ],
+  "author": "Paul",
+  "license": "MIT",
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "tailwindcss": "^3.4.17",
+    "vite": "^7.0.4",
+    "terser": "^5.43.1"
+  }
+}
