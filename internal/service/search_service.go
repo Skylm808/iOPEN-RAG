@@ -40,11 +40,25 @@ func NewSearchService(embeddingClient embedding.Client, esClient *elasticsearch.
 	}
 }
 
-// HybridSearch 执行与 Java 项目逻辑一致的两阶段混合搜索。
+// HybridSearch 执行混合检索主流程（与 archDocs/search_service_workflow.md 对齐）。
+// 流程总览：
+// 1) 权限与预处理：获取用户有效组织标签，清洗查询词得到 normalized/phrase
+// 2) 向量化 Query：使用原始 query 生成 embedding（保留语气与上下文语义）
+// 3) 构建混合查询：单次 ES 请求内组合 knn + bool（must/filter/should）
+// 4) 执行搜索：在候选窗口内通过 rescore 进行二次排序
+// 5) 解析响应：提取命中块与分数
+// 6) 0 命中兜底：保留查询骨架，仅将 must/rescore 的 query 改为 phrase 重试一次
+// 7) 元数据补全：按 file_md5 回查 MySQL，组装最终 DTO
+//
+// 关键语义：
+// - 不是“先向量查再关键词查”的两次独立请求，而是同一次请求里的融合检索。
+// - 权限在检索阶段直接过滤（私有 / 公开 / 组织），避免越权命中进入候选集。
+// - rescore 只作用于候选窗口，用更严格关键词匹配提升排序精度。
 func (s *searchService) HybridSearch(ctx context.Context, query string, topK int, user *model.User) ([]model.SearchResponseDTO, error) {
 	log.Infof("[SearchService] 开始执行混合搜索, query: '%s', topK: %d, user: %s", query, topK, user.Username)
 
-	// 1. 获取用户有效的组织标签（包含层级关系）
+	// 步骤 1：权限前置。获取用户可见的组织标签（包含继承/层级展开后的有效标签）。
+	// 这些标签会进入 bool.filter 的 terms 条件，和 user_id / is_public 一起组成权限三选一过滤。
 	log.Info("[SearchService] 步骤1: 获取用户有效组织标签")
 	userEffectiveTags, err := s.userService.GetUserEffectiveOrgTags(user)
 	if err != nil {
@@ -54,13 +68,16 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Infof("[SearchService] 获取到 %d 个有效组织标签: %v", len(userEffectiveTags), userEffectiveTags)
 
-	// 2. 轻量归一化（去噪）以获取核心短语
+	// 步骤 1（续）：查询归一化。
+	// - normalized：用于 must.match 与 rescore.match 的关键词通道
+	// - phrase：用于 should.match_phrase 提升短语命中，以及 0 命中时的重试词
 	normalized, phrase := normalizeQuery(query)
 	if normalized != query {
 		log.Infof("[SearchService] 规范化查询: '%s' -> '%s' (phrase='%s')", query, normalized, phrase)
 	}
 
-	// 3. 向量化查询（用原始用户问句，保持语义检索能力）
+	// 步骤 2：向量化（语义通道）。
+	// 使用原始 query（而非 normalized），避免去噪后损失嵌入模型可利用的语义线索。
 	log.Info("[SearchService] 步骤2: 开始向量化查询")
 	queryVector, err := s.embeddingClient.CreateEmbedding(ctx, query)
 	if err != nil {
@@ -69,10 +86,17 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Infof("[SearchService] 步骤2: 向量化查询成功, 向量维度: %d", len(queryVector))
 
-	// 4. 构建 Elasticsearch 的复杂混合搜索查询 (与Java对齐)，并加入短语兜底 should
+	// 步骤 3：构建 ES 混合查询（一次请求内融合召回）。
+	// - knn：语义召回，负责“尽量不漏”
+	// - bool.must(match)：关键词主条件，限制主题方向
+	// - bool.filter：权限硬过滤（user_id OR is_public OR org_tag）
+	// - bool.should(match_phrase)：短语命中加分，不是必须条件
 	log.Info("[SearchService] 步骤3: 开始构建 Elasticsearch 两阶段混合搜索查询")
 	var buf bytes.Buffer
+	// 用 map[string]interface{} 组装 DSL，便于后续按条件改写（例如 0 命中时替换 must/rescore 查询词）。
 	esQuery := map[string]interface{}{
+		// 阶段一（召回）：KNN 先拉大候选池，给后续 rescore 预留足够空间。
+		// k/num_candidates = topK*30，与 window_size 对齐，形成“扩召回 -> 精重排”的配合。
 		"knn": map[string]interface{}{
 			"field":          "vector",
 			"query_vector":   queryVector,
@@ -81,11 +105,17 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 		},
 		"query": map[string]interface{}{
 			"bool": map[string]interface{}{
+				// must.match（阶段一关键词约束）：
+				// - 基于 normalized 做分词匹配（不是字面全等）
+				// - 默认 OR 语义（未显式 operator），用于“宽召回”避免过早漏掉候选
 				"must": map[string]interface{}{
 					"match": map[string]interface{}{
 						"text_content": normalized,
 					},
 				},
+				// filter（权限硬约束）：
+				// - 不参与打分，仅决定可见性
+				// - 三条规则命中任意一条即可：本人 / 公开 / 同组织
 				"filter": map[string]interface{}{
 					"bool": map[string]interface{}{
 						"should": []map[string]interface{}{
@@ -96,10 +126,14 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 						"minimum_should_match": 1,
 					},
 				},
-				// 额外的 should：对核心短语做 match_phrase 以兜底召回
+				// should.match_phrase（短语增强）：
+				// - 非必须命中
+				// - 命中核心短语时提高分数，帮助“措辞更贴近问题”的片段前移
 				"should": buildPhraseShould(phrase),
 			},
 		},
+		// 阶段二（精排）：仅在候选窗口内执行 rescore。
+		// 这里显式 operator=and，比阶段一更严格，用于把“关键词完整覆盖度高”的文档排到前面。
 		"rescore": map[string]interface{}{
 			"window_size": topK * 30, // 与 Java 的 recallK 对齐
 			"query": map[string]interface{}{
@@ -111,8 +145,8 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 						},
 					},
 				},
-				"query_weight":         0.2, // 保留部分 k-NN 分数
-				"rescore_query_weight": 1.0, // BM25 分数权重
+				"query_weight":         0.2, // 保留第一阶段分数（低权重）
+				"rescore_query_weight": 1.0, // 让第二阶段关键词精排主导最终排序
 			},
 		},
 		"size": topK,
@@ -124,9 +158,10 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Infof("[SearchService] 构建的 Elasticsearch 查询语句: %s", buf.String())
 
-	// 5. 执行搜索
+	// 步骤 4：执行搜索（一次请求同时包含召回与精排配置）。
 	log.Info("[SearchService] 步骤4: 开始向 Elasticsearch 发送搜索请求")
-	// 与 Java 索引名保持一致（假设为 knowledge_base）
+	// WithIndex("knowledge_base") 指定本次只在 knowledge_base 索引里搜索。
+	// 如果不指定索引，可能搜索到默认/其他索引，导致结果不符合预期。
 	res, err := s.esClient.Search(
 		s.esClient.Search.WithContext(ctx),
 		s.esClient.Search.WithIndex("knowledge_base"),
@@ -146,7 +181,7 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Info("[SearchService] 成功从 Elasticsearch 获取响应")
 
-	// 6. 解析结果
+	// 步骤 5：解析 ES 响应。
 	log.Info("[SearchService] 步骤5: 开始解析 Elasticsearch 响应")
 	var esResponse struct {
 		Hits struct {
@@ -164,19 +199,20 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 
 	if len(esResponse.Hits.Hits) == 0 {
 		log.Infof("[SearchService] Elasticsearch 返回 0 条命中结果")
-		// 兜底：若规范化后核心短语存在且与原问句不同，则用核心短语重试一次（更强关键词信号）
+		// 步骤 6：0 命中兜底重试。
+		// 保留原查询骨架（knn/filter/rescore 结构不变），仅把 must/rescore 的 query 改为 phrase。
 		if phrase != "" && phrase != query {
 			log.Infof("[SearchService] 使用核心短语重试查询: '%s'", phrase)
-			// rebuild with phrase in must+rescore
+			// 用核心短语替换关键词查询条件（must + rescore），其余参数保持一致。
 			var retryBuf bytes.Buffer
 			retryQuery := esQuery
-			// update must.match.text_content
+			// 改写 must.match.text_content.query
 			((retryQuery["query"].(map[string]interface{}))["bool"].(map[string]interface{}))["must"] = map[string]interface{}{
 				"match": map[string]interface{}{
 					"text_content": phrase,
 				},
 			}
-			// update rescore query
+			// 改写 rescore_query.match.text_content.query
 			((retryQuery["rescore"].(map[string]interface{}))["query"].(map[string]interface{}))["rescore_query"] = map[string]interface{}{
 				"match": map[string]interface{}{
 					"text_content": map[string]interface{}{
@@ -205,13 +241,13 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 		}
 	}
 
-	// 7. 批量获取文件名
+	// 步骤 7：结果补全。根据 file_md5 批量回查文件名，保证展示使用最新元数据。
 	log.Info("[SearchService] 步骤6: 开始批量获取文件名")
 	fileMD5s := make([]string, 0, len(esResponse.Hits.Hits))
 	for _, hit := range esResponse.Hits.Hits {
 		fileMD5s = append(fileMD5s, hit.Source.FileMD5)
 	}
-	// 使用 map 去重
+	// 先去重，避免重复 MD5 触发无效数据库查询。
 	uniqueMD5s := make(map[string]struct{})
 	for _, md5 := range fileMD5s {
 		uniqueMD5s[md5] = struct{}{}
@@ -233,7 +269,7 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Infof("[SearchService] 批量获取文件名成功, 共获取 %d 个文件信息", len(fileNameMap))
 
-	// 8. 组装最终结果
+	// 组装最终返回 DTO（含 chunk 内容、分数、权限字段与补全后的文件名）。
 	log.Info("[SearchService] 步骤7: 开始组装最终响应 DTO")
 	var results []model.SearchResponseDTO
 	for _, hit := range esResponse.Hits.Hits {
@@ -260,22 +296,24 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	return results, nil
 }
 
-// normalizeQuery 对用户查询进行轻量去噪与短语提取。
-// 返回值：规范化后的查询（用于 BM25/rescore）与核心短语（用于 match_phrase 兜底）。
+// normalizeQuery 对查询做轻量归一化，服务于关键词通道。
+// 返回：
+// - normalized：用于 must.match + rescore.match 的关键词检索词
+// - phrase：当前实现与 normalized 相同，用于 should.match_phrase 与 0 命中重试
 func normalizeQuery(q string) (string, string) {
 	if q == "" {
 		return q, ""
 	}
 	lower := strings.ToLower(q)
-	// 去除常见口语/功能词
+	// 去除常见口语/功能词，降低噪声词对关键词匹配的干扰。
 	stopPhrases := []string{"是谁", "是什么", "是啥", "请问", "怎么", "如何", "告诉我", "严格", "按照", "不要补充", "的区别", "区别", "吗", "呢", "？", "?"}
 	for _, sp := range stopPhrases {
 		lower = strings.ReplaceAll(lower, sp, " ")
 	}
-	// 仅保留中文、英文、数字与空白
+	// 仅保留中文、英文、数字与空白，去掉标点及其它符号。
 	reKeep := regexp.MustCompile(`[^\p{Han}a-z0-9\s]+`)
 	kept := reKeep.ReplaceAllString(lower, " ")
-	// 归一空白
+	// 归一化连续空白为单空格，避免生成异常查询词。
 	reSpace := regexp.MustCompile(`\s+`)
 	kept = strings.TrimSpace(reSpace.ReplaceAllString(kept, " "))
 	if kept == "" {
@@ -284,7 +322,8 @@ func normalizeQuery(q string) (string, string) {
 	return kept, kept
 }
 
-// buildPhraseShould 构建 match_phrase should 子句（带 boost），为空则返回 nil
+// buildPhraseShould 构建 should.match_phrase 子句（带 boost）。
+// phrase 为空时返回 nil，表示不添加短语增强分支。
 func buildPhraseShould(phrase string) interface{} {
 	if phrase == "" {
 		return nil

@@ -1,70 +1,127 @@
 // Package middleware 提供了处理 HTTP 请求的中间件。
+// 当前包含三个中间件：
+//   - AuthMiddleware：JWT 认证（所有需要登录的接口都要经过它）
+//   - AdminAuthMiddleware：管理员权限校验（在 AuthMiddleware 之后执行）
+//   - RequestLogger：请求日志记录
 package middleware
 
 import (
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"pai-smart-go/internal/service"
 	"pai-smart-go/pkg/log"
 	"pai-smart-go/pkg/token"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware 创建一个 Gin 中间件，用于 JWT 认证。
-// 它会从请求头中提取 token，验证其有效性，并将完整的 User 对象存入 Gin 的上下文中。
+// AuthMiddleware 是 JWT 认证中间件，所有需要登录的接口都挂载它。
+//
+// ┌─────────────────────────────────────────────────────────────────────┐
+// │                   一次请求经过此中间件的完整流程                      │
+// │                                                                     │
+// │  HTTP 请求到达                                                       │
+// │       │                                                             │
+// │       ▼                                                             │
+// │  读取 Authorization 头                                               │
+// │       │                                                             │
+// │  为空？──是──▶ 401 Unauthorized，AbortWithStatusJSON，请求终止        │
+// │       │ 否                                                           │
+// │       ▼                                                             │
+// │  格式是 "Bearer <token>"？                                           │
+// │  不是？──▶ 401，请求终止                                             │
+// │       │ 是                                                           │
+// │       ▼                                                             │
+// │  jwtManager.VerifyToken(tokenString)                                │
+// │  验证失败？──▶ 尝试 X-Refresh-Token 头（只是日志提示，不会自动续签）   │
+// │            ──▶ 401，请求终止                                         │
+// │       │ 验证成功                                                     │
+// │       ▼                                                             │
+// │  userService.GetProfile(claims.Username)   ← 去 MySQL 查完整用户信息 │
+// │  用户不存在？──▶ 401，请求终止                                        │
+// │       │ 存在                                                         │
+// │       ▼                                                             │
+// │  c.Set("user", user)    ← 把 User 对象放进 gin.Context              │
+// │  c.Set("claims", claims)                                            │
+// │       │                                                             │
+// │  c.Next()  ← 放行，进入下一个中间件或 Handler                         │
+// └─────────────────────────────────────────────────────────────────────┘
+//
+// 参数说明：
+//   - jwtManager：负责 token 的生成与验证（签名算法、过期判断）
+//   - userService：用于查完整 User 对象（包含 OrgTags、Role 等）
+//
+// 调用方（后续 Handler）如何取用户：
+//
+//	user, _ := c.Get("user")
+//	currentUser := user.(*model.User)
 func AuthMiddleware(jwtManager *token.JWTManager, userService service.UserService) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// 从 Authorization 请求头中获取 token
+
+		// ── 步骤 1：提取 Authorization 请求头 ──────────────────────────────
+		// 标准格式：Authorization: Bearer eyJhbGciOiJIUzI1NiIs...
+		// 没有这个头 = 没有登录凭证，直接拒绝
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			// 如果请求头为空，则中止请求，返回未授权状态
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "请求未包含授权头"})
 			return
 		}
 
-		// Token 通常以 "Bearer <token>" 的形式提供，我们需要提取出 token 本身
+		// ── 步骤 2：校验格式并提取纯 token 字符串 ─────────────────────────
+		// "Bearer " 是 OAuth2 规范要求的前缀，必须带上
+		// 去掉前缀后 tokenString 就是原始的 JWT（三段 base64 用点分隔）
 		const bearerPrefix = "Bearer "
 		if !strings.HasPrefix(authHeader, bearerPrefix) {
-			// 如果 token 格式不正确，则返回错误
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效的授权头格式"})
 			return
 		}
 		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
 
-		// 验证与“宽限期刷新”模拟：若过期则尝试刷新（对齐 Java 的宽限期刷新语义）
+		// ── 步骤 3：验证 JWT 签名和过期时间 ──────────────────────────────
+		// VerifyToken 会做两件事：
+		//   ① 用密钥验证签名（防止伪造 token）
+		//   ② 检查 Claims.ExpiresAt 是否过期
+		// 返回的 claims 里包含：UserID / Username / Role / ExpiresAt
 		claims, err := jwtManager.VerifyToken(tokenString)
 		if err != nil {
-			// 简化：尝试用 refreshToken 头部执行刷新（若存在）
+			// token 验证失败（过期或签名错误）
+			// 这里有一个辅助逻辑：
+			//   如果请求头还带了 X-Refresh-Token，说明前端可能想静默续签。
+			//   当前实现只打日志提示，不自动续签；正式刷新入口是 POST /auth/refreshToken。
 			refresh := c.GetHeader("X-Refresh-Token")
 			if refresh != "" {
-				// 为保证无侵入，尝试解析 refresh 并签发新 access（此处仅日志提示，实际刷新入口仍在 /auth/refreshToken）
 				if rclaims, rerr := jwtManager.VerifyToken(refresh); rerr == nil {
 					if time.Until(rclaims.ExpiresAt.Time) > 0 {
-						// 模拟前置刷新：记录日志并继续后续链路，由前端正式调用刷新接口
+						// refresh token 还有效，前端可以去调 /auth/refreshToken 换新 access token
 						log.Infof("检测到过期 access，存在仍有效的 refresh，可引导刷新")
 					}
 				}
 			}
+			// 无论 refresh 情况如何，当前请求没有有效 access token，一律 401
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "无效或已过期的 token"})
 			return
 		}
 
-		// 使用 claims 中的用户名从数据库获取完整的用户信息
+		// ── 步骤 4：从数据库拉取完整用户信息 ─────────────────────────────
+		// 为什么不直接用 claims 里的数据？
+		//   claims 里只有 UserID / Username / Role，这是签发 token 时写进去的快照。
+		//   但用户的 OrgTags、PrimaryOrg 可能在 token 签发后被管理员修改。
+		//   查库可以拿到最新数据，确保权限判断基于实时状态。
+		//   如果用户已被删除，这里会返回错误，直接拒绝访问。
 		user, err := userService.GetProfile(claims.Username)
 		if err != nil {
-			// 如果根据 token 中的用户信息无法找到用户，说明该用户可能已被删除
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "用户不存在"})
 			return
 		}
 
-		// 将完整的 User 对象存储在 context 中，供后续处理函数使用
+		// ── 步骤 5：把用户信息注入 gin.Context，供后续 Handler 使用 ───────
+		// Key "user"：存储 *model.User，Handler 里直接取完整用户对象
+		// Key "claims"：存储 JWT Claims，偶尔需要原始 token 信息时用
 		c.Set("user", user)
-
-		// 为了向后兼容或特殊用途，仍然可以存储 claims
 		c.Set("claims", claims)
 
-		// 继续处理请求链中的下一个处理器
+		// ── 步骤 6：放行，进入下一个中间件或 Handler ─────────────────────
 		c.Next()
 	}
 }

@@ -10,7 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// SearchHandler 结构体定义了搜索相关的处理器。
+// SearchHandler 是搜索模块的 HTTP 入口层。
+// 主要职责：
+// - 解析并校验查询参数（query/topK）
+// - 从中间件上下文读取当前用户
+// - 调用 SearchService 执行混合检索
+// - 统一返回 JSON 响应
 type SearchHandler struct {
 	searchService service.SearchService
 }
@@ -22,8 +27,11 @@ func NewSearchHandler(searchService service.SearchService) *SearchHandler {
 	}
 }
 
-// HybridSearch 是处理混合搜索请求的 Gin 处理函数。
+// HybridSearch 处理 GET 搜索请求。
+// 典型调用：/api/v1/search/hybrid?query=年假规则&topK=10
+// 注意：真正的检索策略（knn + must/filter/should + rescore）在 service 层实现。
 func (h *SearchHandler) HybridSearch(c *gin.Context) {
+	// 1) 读取 query 文本（必填）
 	query := c.Query("query")
 	log.Infof("[SearchHandler] 收到混合搜索请求, query: %s", query)
 
@@ -32,6 +40,7 @@ func (h *SearchHandler) HybridSearch(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "无效的查询参数"})
 		return
 	}
+	// 2) 读取 topK（可选），非法值回退到默认 10
 	topKStr := c.DefaultQuery("topK", "10")
 	topK, err := strconv.Atoi(topKStr)
 	if err != nil || topK <= 0 {
@@ -39,6 +48,7 @@ func (h *SearchHandler) HybridSearch(c *gin.Context) {
 	}
 	log.Infof("[SearchHandler] 解析参数, topK: %d", topK)
 
+	// 3) 从 AuthMiddleware 注入的上下文获取当前用户
 	user, exists := c.Get("user")
 	if !exists {
 		log.Errorf("[SearchHandler] 无法从 Gin 上下文中获取用户信息")
@@ -46,6 +56,7 @@ func (h *SearchHandler) HybridSearch(c *gin.Context) {
 		return
 	}
 
+	// 4) 调用搜索服务。service 会同时处理：权限过滤、向量召回、关键词重排。
 	results, err := h.searchService.HybridSearch(c.Request.Context(), query, topK, user.(*model.User))
 	if err != nil {
 		log.Errorf("[SearchHandler] 混合搜索服务返回错误, error: %v", err)
@@ -53,6 +64,7 @@ func (h *SearchHandler) HybridSearch(c *gin.Context) {
 		return
 	}
 
+	// 5) 返回统一成功结构
 	log.Infof("[SearchHandler] 混合搜索成功, query: '%s', 返回 %d 条结果", query, len(results))
 	c.JSON(http.StatusOK, gin.H{"code": 200, "data": results, "message": "success"})
 }

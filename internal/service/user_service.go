@@ -217,59 +217,120 @@ func (s *userService) GetUserOrgTags(username string) (map[string]interface{}, e
 	return result, nil
 }
 
-// GetUserEffectiveOrgTags 获取用户的所有有效组织标签 (包括层级)。
-// 该实现与 Java 项目逻辑一致，会递归查询所有父级组织标签。
+// GetUserEffectiveOrgTags 获取用户实际可访问的全部组织标签（含所有祖先标签）。
+//
+// ── 为什么需要"向上展开"？ ───────────────────────────────────────────────
+//
+// 组织标签是树形结构，父标签代表更大的范围。例如：
+//
+//	公司（root）
+//	  └── 技术部（org:tech）
+//	        └── 后端组（org:tech:backend）   ← 用户 A 属于这里
+//
+// 如果用户 A 属于"后端组"，他理应也能看到挂在"技术部"甚至"公司"下的文档。
+// 上传文档时 org_tag 可以打"技术部"，意思是"技术部所有人可见"。
+// 检索时如果只用"后端组"过滤，就会漏掉这些文档。
+// 所以必须把用户直接所属标签的所有父标签都展开，ES filter 才能覆盖全部可见范围。
+//
+// 展开前 → 展开后：
+//
+//	用户 OrgTags = ["org:tech:backend"]
+//	有效标签   = ["org:tech:backend", "org:tech", "root"]
+//
+// ── 算法：BFS（广度优先搜索）向上遍历父标签 ─────────────────────────────
+//
+// 步骤：
+//  1. 一次性拉取数据库里所有 org_tag 记录，构建 tagID -> parentTagID 的 Map（避免循环查库）
+//  2. 把用户直接持有的标签作为 BFS 初始队列
+//  3. 从队列取出当前标签 → 找到它的 parent → 如果 parent 没有被处理过就入队
+//  4. 直到队列为空（已到达根节点或没有更多父标签）
+//  5. 返回所有处理过的标签（即"能访问的完整范围"）
+//
+// 返回值会直接用于 search_service.go 的 ES filter：
+//
+//	"filter": {
+//	  "bool": {
+//	    "should": [
+//	      {"term": {"user_id": user.ID}},           // 是自己上传的
+//	      {"term": {"is_public": true}},             // 是公开文档
+//	      {"terms": {"org_tag": effectiveTags}},     // ← 这里用展开后的完整标签列表
+//	    ],
+//	    "minimum_should_match": 1
+//	  }
+//	}
 func (s *userService) GetUserEffectiveOrgTags(user *model.User) ([]string, error) {
 	if user.OrgTags == "" {
+		// 用户没有任何组织标签（理论上不会，注册时至少有私人标签）
 		return []string{}, nil
 	}
 
-	// 1. 获取所有组织标签，以便在内存中构建层级关系，避免循环查询数据库
+	// 步骤 1：一次性加载所有 org_tag，在内存里构建关系图。
+	// 这样做的原因：如果在 BFS 每一步都查数据库，N 层树就要查 N 次，性能差且产生 N 次 IO。
+	// 一次全量加载后，后面的父节点查找全在内存里完成，效率高。
 	allTags, err := s.orgTagRepo.FindAll()
 	if err != nil {
 		log.Errorf("[UserService] 获取所有组织标签失败: %v", err)
 		return nil, fmt.Errorf("无法获取组织标签列表: %w", err)
 	}
 
-	// 2. 构建一个 TagID -> ParentTagID 的快速查找映射
+	// 步骤 2：构建 tagID -> *parentTagID 的快速查找 Map。
+	// 用指针是因为 parentTag 可能为 nil（根节点没有父标签）。
+	// 如果用空字符串表示"无父节点"会和真实 tagID 冲突，用 *string 更安全。
 	parentMap := make(map[string]*string)
 	for _, tag := range allTags {
 		parentMap[tag.TagID] = tag.ParentTag
 	}
 
-	// 3. 使用 map 来存储所有有效的标签ID，自动处理重复项
+	// 步骤 3：初始化结果 Set（用 map 代替 slice，自动去重）。
+	// 用 struct{} 作为 value 类型，不占额外内存（相当于 Java 的 HashSet）。
 	effectiveTags := make(map[string]struct{})
 
-	// 4. 初始化一个队列，用于广度优先搜索所有父标签
+	// 步骤 4：把用户直接持有的标签（逗号分隔字符串）作为 BFS 的起始节点入队。
+	// 例如 user.OrgTags = "org:tech:backend,PRIVATE_alice"
+	// → initialTags = ["org:tech:backend", "PRIVATE_alice"]
 	initialTags := strings.Split(user.OrgTags, ",")
 	queue := make([]string, 0, len(initialTags))
 
 	for _, tagID := range initialTags {
+		tagID = strings.TrimSpace(tagID) // 防止空格导致匹配失败
 		if _, exists := effectiveTags[tagID]; !exists {
-			effectiveTags[tagID] = struct{}{}
-			queue = append(queue, tagID)
+			effectiveTags[tagID] = struct{}{} // 加入结果集
+			queue = append(queue, tagID)      // 加入 BFS 队列
 		}
 	}
 
-	// 5. 开始向上遍历，查找所有父标签
+	// 步骤 5：BFS 主循环 —— 持续向上查父标签，直到到达根节点。
+	//
+	// 以"后端组 → 技术部 → 公司"为例，执行过程：
+	//   初始队列：["org:tech:backend"]
+	//   第1轮：取出 "org:tech:backend"，父是 "org:tech" → 入队
+	//   队列：["org:tech"]
+	//   第2轮：取出 "org:tech"，父是 "root" → 入队
+	//   队列：["root"]
+	//   第3轮：取出 "root"，parentTag=nil → 什么都不做
+	//   队列：[]  → 循环结束
+	//   结果集：["org:tech:backend", "org:tech", "root"]
 	for len(queue) > 0 {
-		// 出队
+		// 出队：取队列第一个元素（FIFO）
 		currentTagID := queue[0]
 		queue = queue[1:]
 
-		// 在映射中查找父标签
+		// 在内存 Map 里找当前标签的父标签
 		parentTagPtr, ok := parentMap[currentTagID]
 		if ok && parentTagPtr != nil {
 			parentTagID := *parentTagPtr
-			// 如果父标签未被处理过，则加入结果集并入队
+			// 父标签未被处理过 → 加入结果集并入队，继续向上找
+			// 已处理过则跳过（防止循环引用导致死循环，虽然正常数据不会有环）
 			if _, exists := effectiveTags[parentTagID]; !exists {
 				effectiveTags[parentTagID] = struct{}{}
 				queue = append(queue, parentTagID)
 			}
 		}
+		// parentTagPtr == nil 说明到达根节点，BFS 这条路径到头了
 	}
 
-	// 6. 将 map 的键转换为 string 切片
+	// 步骤 6：将 map 的键转换为 string slice 返回。
+	// 顺序不保证（map 遍历无序），但 ES filter 中 terms 查询不需要有序。
 	result := make([]string, 0, len(effectiveTags))
 	for tagID := range effectiveTags {
 		result = append(result, tagID)
