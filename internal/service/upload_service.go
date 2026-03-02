@@ -106,13 +106,50 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 	record, err := s.uploadRepo.GetFileUploadRecord(fileMD5, userID)
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Infof("[UploadChunk] 文件上传记录不存在，为文件MD5: %s 创建新记录", fileMD5)
-		// 增强逻辑2: 自动关联主组织
+
+		// ── 安全验证：防止组织标签伪造 ──────────────────────────────────────
+		//
+		// 问题：如果直接使用外部传入的 orgTag，攻击者可以伪造任意组织标签
+		//
+		// 攻击场景：
+		//   用户 alice 属于 org:sales
+		//   攻击者上传时指定 orgTag = "org:finance"
+		//   结果：文件被标记为财务部文档，财务部所有成员都能看到
+		//
+		// 修复方案：
+		//   1. 如果 orgTag 为空，使用用户的 PrimaryOrg（默认行为）
+		//   2. 如果 orgTag 不为空，必须验证用户是否真的属于该组织
+		//   3. 只有验证通过才允许使用外部指定的 orgTag
+
+		user, userErr := s.userRepo.FindByID(userID)
+		if userErr != nil {
+			log.Errorf("[UploadChunk] 查询用户信息失败, userID: %d, error: %v", userID, userErr)
+			return nil, 0, userErr
+		}
+
+		// 验证并规范化 orgTag
 		if orgTag == "" {
-			user, userErr := s.userRepo.FindByID(userID)
-			if userErr != nil {
-				return nil, 0, userErr
-			}
+			// 情况1：前端未指定组织，使用用户的主组织（默认行为）
 			orgTag = user.PrimaryOrg
+			log.Infof("[UploadChunk] 未指定组织标签，使用用户主组织: %s", orgTag)
+		} else {
+			// 情况2：前端指定了组织，必须验证用户是否拥有该组织标签
+			userOrgTags := strings.Split(user.OrgTags, ",")
+			hasPermission := false
+			for _, tag := range userOrgTags {
+				if strings.TrimSpace(tag) == orgTag {
+					hasPermission = true
+					break
+				}
+			}
+
+			if !hasPermission {
+				// 安全拒绝：用户尝试上传到不属于自己的组织
+				log.Warnf("[UploadChunk] 安全拒绝：用户 %d 尝试上传到不属于自己的组织 %s（用户组织：%s）",
+					userID, orgTag, user.OrgTags)
+				return nil, 0, fmt.Errorf("无权上传到组织 %s：您不属于该组织", orgTag)
+			}
+			log.Infof("[UploadChunk] 组织标签验证通过: %s", orgTag)
 		}
 
 		newRecord := &model.FileUpload{
@@ -121,7 +158,7 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 			TotalSize: totalSize,
 			Status:    0, // 上传中
 			UserID:    userID,
-			OrgTag:    orgTag,
+			OrgTag:    orgTag,   // 使用验证后的 orgTag
 			IsPublic:  isPublic, // 保存 isPublic 状态
 		}
 		if err := s.uploadRepo.CreateFileUploadRecord(newRecord); err != nil {
