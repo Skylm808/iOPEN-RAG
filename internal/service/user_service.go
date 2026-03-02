@@ -163,16 +163,51 @@ func (s *userService) Logout(tokenString string) error {
 }
 
 // SetUserPrimaryOrg 设置用户的主组织。
+//
+// ── 安全验证说明 ──────────────────────────────────────────────────────────
+//
+// 本方法必须严格验证用户是否真的拥有目标组织标签，防止越权设置。
+//
+// ❌ 错误实现（子串匹配漏洞）：
+//   if strings.Contains(user.OrgTags, orgTag) { ... }
+//
+//   问题：如果用户的 OrgTags = "org:tech,PRIVATE_alice"
+//        攻击者请求 orgTag = "org:t"（不存在的组织）
+//        strings.Contains 会返回 true（因为 "org:t" 是 "org:tech" 的子串）
+//        导致用户可以设置到任意子串匹配的非法组织
+//
+// ✅ 正确实现（精确匹配）：
+//   将 OrgTags 按逗号分隔成数组，逐个精确比较
+//   只有完全匹配的标签才允许设置
+//
+// 示例：
+//   用户 OrgTags: "org:tech:backend,PRIVATE_bob"
+//   合法请求: "org:tech:backend" 或 "PRIVATE_bob" → 允许
+//   非法请求: "org:tech:back" 或 "org:t" → 拒绝
 func (s *userService) SetUserPrimaryOrg(username, orgTag string) error {
 	user, err := s.userRepo.FindByUsername(username)
 	if err != nil {
 		return err
 	}
-	// 简化的验证：检查用户是否拥有该组织标签。
-	// 在生产环境中，这里可能需要更复杂的逻辑来验证标签的有效性。
-	if !strings.Contains(user.OrgTags, orgTag) {
+
+	// 安全验证：精确匹配用户的组织标签列表
+	// 将逗号分隔的字符串拆分成数组，逐个比较
+	userOrgTags := strings.Split(user.OrgTags, ",")
+	hasPermission := false
+	for _, tag := range userOrgTags {
+		// 去除可能的空格，进行精确匹配（不是子串匹配）
+		if strings.TrimSpace(tag) == orgTag {
+			hasPermission = true
+			break
+		}
+	}
+
+	if !hasPermission {
+		log.Warnf("[SetUserPrimaryOrg] 安全拒绝：用户 %s 尝试设置不属于自己的组织 %s（当前组织：%s）",
+			username, orgTag, user.OrgTags)
 		return errors.New("user does not belong to this organization")
 	}
+
 	user.PrimaryOrg = orgTag
 	return s.userRepo.Update(user)
 }

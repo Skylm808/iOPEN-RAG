@@ -8,6 +8,7 @@ type ChatMessage struct {
 	Role      string    `json:"role"` // "user" 或 "assistant"
 	Content   string    `json:"content"`
 	Timestamp time.Time `json:"timestamp"`
+	Username  string    `json:"username"` // 发言人用户名，user 消息填登录用户名，assistant 消息留空
 }
 
 // Conversation 代表一次单独的问答交互。
