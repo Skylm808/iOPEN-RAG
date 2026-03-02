@@ -8,6 +8,7 @@ package middleware
 import (
 	"net/http"
 	"pai-smart-go/internal/service"
+	"pai-smart-go/pkg/database"
 	"pai-smart-go/pkg/log"
 	"pai-smart-go/pkg/token"
 	"strings"
@@ -78,7 +79,20 @@ func AuthMiddleware(jwtManager *token.JWTManager, userService service.UserServic
 		}
 		tokenString := strings.TrimPrefix(authHeader, bearerPrefix)
 
-		// ── 步骤 3：验证 JWT 签名和过期时间 ──────────────────────────────
+		// ── 步骤 3：检查 token 是否已被登出（Redis 黑名单） ─────────────
+		// Logout 时会将 token 写入 Redis key "blacklist:<token>"，过期时间与 token 剩余有效期一致。
+		// 这里必须在签名验证之前检查，否则已登出但未过期的 token 仍能通过认证。
+		blacklistKey := "blacklist:" + tokenString
+		exists, err := database.RDB.Exists(c.Request.Context(), blacklistKey).Result()
+		if err != nil {
+			log.Errorf("检查 token 黑名单失败: %v", err)
+			// Redis 异常时放行，避免 Redis 故障导致全站不可用（降级策略）
+		} else if exists > 0 {
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "token 已失效，请重新登录"})
+			return
+		}
+
+		// ── 步骤 4：验证 JWT 签名和过期时间 ──────────────────────────────
 		// VerifyToken 会做两件事：
 		//   ① 用密钥验证签名（防止伪造 token）
 		//   ② 检查 Claims.ExpiresAt 是否过期
@@ -103,7 +117,7 @@ func AuthMiddleware(jwtManager *token.JWTManager, userService service.UserServic
 			return
 		}
 
-		// ── 步骤 4：从数据库拉取完整用户信息 ─────────────────────────────
+		// ── 步骤 5：从数据库拉取完整用户信息 ─────────────────────────────
 		// 为什么不直接用 claims 里的数据？
 		//   claims 里只有 UserID / Username / Role，这是签发 token 时写进去的快照。
 		//   但用户的 OrgTags、PrimaryOrg 可能在 token 签发后被管理员修改。
@@ -115,13 +129,13 @@ func AuthMiddleware(jwtManager *token.JWTManager, userService service.UserServic
 			return
 		}
 
-		// ── 步骤 5：把用户信息注入 gin.Context，供后续 Handler 使用 ───────
+		// ── 步骤 6：把用户信息注入 gin.Context，供后续 Handler 使用 ───────
 		// Key "user"：存储 *model.User，Handler 里直接取完整用户对象
 		// Key "claims"：存储 JWT Claims，偶尔需要原始 token 信息时用
 		c.Set("user", user)
 		c.Set("claims", claims)
 
-		// ── 步骤 6：放行，进入下一个中间件或 Handler ─────────────────────
+		// ── 步骤 7：放行，进入下一个中间件或 Handler ─────────────────────
 		c.Next()
 	}
 }
