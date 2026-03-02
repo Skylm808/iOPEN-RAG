@@ -53,7 +53,7 @@ const { columns, columnChecks, data, getData, loading } = useTable({
           {renderIcon(row.fileName)}
           <NEllipsis lineClamp={2} tooltip>
             <span
-              class="cursor-pointer hover:text-primary transition-colors"
+              class="cursor-pointer transition-colors hover:text-primary"
               onClick={() => handleFilePreview(row.fileName)}
             >
               {row.fileName}
@@ -99,12 +99,7 @@ const { columns, columnChecks, data, getData, loading } = useTable({
       render: row => (
         <div class="flex gap-4">
           {renderResumeUploadButton(row)}
-          <NButton
-            type="primary"
-            ghost
-            size="small"
-            onClick={() => handleFilePreview(row.fileName)}
-          >
+          <NButton type="primary" ghost size="small" onClick={() => handleFilePreview(row.fileName)}>
             预览
           </NButton>
           <NPopconfirm onPositiveClick={() => handleDelete(row.fileMd5)}>
@@ -295,14 +290,10 @@ async function onBeforeUpload(
     </NCard>
     <UploadDialog v-model:visible="uploadVisible" />
     <SearchDialog v-model:visible="searchVisible" />
-    
+
     <!-- 文件预览弹窗 -->
-    <NModal v-model:show="previewVisible" preset="card" title="文件预览" style="width: 80%; max-width: 1000px;">
-      <FilePreview
-        :file-name="previewFileName"
-        :visible="previewVisible"
-        @close="closeFilePreview"
-      />
+    <NModal v-model:show="previewVisible" preset="card" title="文件预览" style="width: 80%; max-width: 1000px">
+      <FilePreview :file-name="previewFileName" :visible="previewVisible" @close="closeFilePreview" />
     </NModal>
   </div>
 </template>

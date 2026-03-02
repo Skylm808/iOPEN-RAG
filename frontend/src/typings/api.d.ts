@@ -186,6 +186,7 @@ declare namespace Api {
       content: string;
       status?: 'pending' | 'loading' | 'finished' | 'error';
       timestamp?: string;
+      username?: string; // 发言人用户名，来自后端 ChatMessage.Username 字段
     }
 
     interface Token {

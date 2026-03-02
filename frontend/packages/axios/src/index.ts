@@ -34,7 +34,7 @@ function createCommonRequest<ResponseData = any>(
     const config: InternalAxiosRequestConfig = { ...conf };
 
     // set request id
-    let requestId = config.headers.get(REQUEST_ID_KEY) as string;
+    const requestId = config.headers.get(REQUEST_ID_KEY) as string;
     if (!requestId) {
       const requestId = nanoid();
       config.headers.set(REQUEST_ID_KEY, requestId);

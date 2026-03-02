@@ -15,14 +15,7 @@
   "bugs": {
     "url": "https://github.com/itwanger/PaiSmart/issues"
   },
-  "keywords": [
-    "ai",
-    "rag",
-    "llm",
-    "chat",
-    "itwanger",
-    "pai-smart"
-  ],
+  "keywords": ["ai", "rag", "llm", "chat", "itwanger", "pai-smart"],
   "engines": {
     "node": ">=18.20.0",
     "pnpm": ">=8.7.0"
