@@ -25,19 +25,48 @@ var (
 	}
 )
 
-// ChatHandler 负责“WebSocket 协议层”的聊天入口。
-// 职责边界：
-// - handler 负责：鉴权、连接管理、停止指令协议、错误回包格式
-// - service 负责：RAG 检索、上下文拼接、LLM 流式转发、会话落库
+// ChatHandler 是 WebSocket 聊天功能的 HTTP/WS 入口层。
+//
+// ── 职责边界 ─────────────────────────────────────────────────────────────────
+//
+//   - handler 负责：鉴权、连接升级与管理、停止指令的协议解析、错误回包格式
+//   - service 负责：RAG 检索、上下文拼接、LLM 流式转发、会话落库
+//
+// ── 停止流式输出的机制 ────────────────────────────────────────────────────────
+//
+// 整个停止机制由三个字段协作完成，见下方字段注释。
+// 完整流程见 GetWebsocketStopToken 和 Handle。
 type ChatHandler struct {
-	chatService   service.ChatService
-	userService   service.UserService
-	jwtManager    *token.JWTManager
-	stopToken     string // 当前进程内的停止口令（简化实现）
+	chatService service.ChatService
+	userService service.UserService
+	jwtManager  *token.JWTManager
+
+	// stopToken 是进程内全局唯一的停止口令（简化实现，适合单实例部署）。
+	// 前端通过 GET /chat/websocket-token 申请该口令，之后通过 WebSocket 消息携带它触发停止。
+	// ⚠️ 已知缺陷：多用户场景下，后申请者会覆盖前申请者的口令，导致先申请者无法停止。
+	//    生产改进方案：以 sessionID 为 key 将口令存入 Redis，实现 per-connection 独立口令。
+	stopToken string
+
+	// stopTokenLock 互斥锁，保护 stopToken 字符串的并发读写安全。
+	// 注意：这里使用 sync.Mutex 而非 sync.Map，是因为被保护的是单个 string 变量而非 Map 结构。
 	stopTokenLock sync.Mutex
-	// stopFlags 存储“某个连接是否被请求停止”。
-	// key 使用连接指针字符串，value=true 表示应停止继续向前端下发流式内容。
-	stopFlags sync.Map // key: session pointer string, value: bool
+
+	// stopFlags 存储"某条 WebSocket 连接是否被请求停止"的标志。
+	// key：连接对象的内存地址字符串（由 sessionKey(conn) 生成，唯一标识一条连接）
+	// value：bool，true 表示应立即停止继续向前端下发流式内容
+	//
+	// 使用 sync.Map 的原因：每条连接对应一个 key，多个 goroutine 并发读写不同 key，
+	// sync.Map 内部自动处理并发，比手动加 Mutex + 普通 Map 更高效。
+	stopFlags sync.Map
+
+	// connWriteLocks 存储每条 WebSocket 连接的写锁。
+	// key：连接对象的内存地址字符串（由 sessionKey(conn) 生成）
+	// value：*sync.Mutex
+	//
+	// gorilla/websocket 不支持并发写（Connections support one concurrent reader and one concurrent writer）。
+	// 读消息的 goroutine（处理停止指令）和流式输出的 goroutine 会同时调用 conn.WriteMessage，
+	// 必须用写锁串行化所有写操作，否则会导致帧损坏或 panic。
+	connWriteLocks sync.Map
 }
 
 // NewChatHandler 创建一个新的 ChatHandler。
@@ -49,8 +78,18 @@ func NewChatHandler(chatService service.ChatService, userService service.UserSer
 	}
 }
 
-// GetWebsocketStopToken 下发“停止流式输出”控制口令。
-// 前端后续可携带该口令发送 stop 指令，服务端据此设置连接级停止标志。
+// GetWebsocketStopToken 下发"停止流式输出"控制口令。
+//
+// ── 调用时机 ─────────────────────────────────────────────────────────────────
+//
+// 前端在建立 WebSocket 连接之前调用此接口，获取口令并存入内存备用。
+// 当用户点击"停止生成"时，前端通过已建立的 WebSocket 连接将该口令发回服务端。
+//
+// ── 口令设计 ─────────────────────────────────────────────────────────────────
+//
+// 口令格式：WSS_STOP_CMD_{16位随机hex}，每次调用此接口都会生成新口令覆盖旧值。
+// 口令的作用是"鉴权"：证明前端有权发出停止指令，防止其他连接被误停。
+// 确定"停止哪条连接"由 stopFlags（连接维度）负责，与口令无关。
 func (h *ChatHandler) GetWebsocketStopToken(c *gin.Context) {
 	h.stopTokenLock.Lock()
 	defer h.stopTokenLock.Unlock()
@@ -61,6 +100,32 @@ func (h *ChatHandler) GetWebsocketStopToken(c *gin.Context) {
 }
 
 // Handle 处理 WebSocket 会话主循环。
+//
+// ── 建立连接的流程 ────────────────────────────────────────────────────────────
+//
+//  1. 校验 URL 中的 token（当前实现直接复用登录 Access Token 放入 URL）
+//     ⚠️ 已知设计债：浏览器原生 WebSocket API 不支持自定义 Header，
+//     因此凭证只能放 URL，但长期 JWT 出现在 URL 中有日志泄漏风险。
+//     改进方案：专设接口颁发短期（60s）WS Token，即用即废。
+//  2. 通过 token 中的 username 反查完整用户信息（用于后续权限检索）
+//  3. 将 HTTP 连接升级为 WebSocket 协议
+//
+// ── 会话循环逻辑 ─────────────────────────────────────────────────────────────
+//
+// 连接建立后进入 for 循环持续接收消息，每条消息有三种处理路径：
+//
+//	路径 A（JSON 停止指令）：
+//	  {"type":"stop","_internal_cmd_token":"..."}
+//	  验证口令后设置 stopFlags，不断开连接（允许用户继续提问）
+//
+//	路径 B（旧协议兼容，直接发口令字符串）：
+//	  "WSS_STOP_CMD_xxxx..."
+//	  同路径 A 效果，兼容旧版前端
+//
+//	路径 C（正常问答消息）：
+//	  进入完整 RAG 链路：检索 → 拼 prompt → LLM 流式输出 → 落库
+//	  shouldStop 闭包在流式发送途中被 service 轮询，用于中断推送
+//
 // 请求路径携带临时 token（/chat/:token），验证后进入持续收消息 -> 调 service -> 回写前端。
 func (h *ChatHandler) Handle(c *gin.Context) {
 	// 1) 校验 URL 中的一次性/临时 token
@@ -86,6 +151,17 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 	}
 	defer conn.Close()
 
+	// 初始化该连接的写锁，所有对 conn.WriteMessage 的调用都必须持有此锁。
+	// gorilla/websocket 不支持并发写，读协程（处理停止指令）和流式输出协程会同时写，必须串行化。
+	connKey := sessionKey(conn)
+	writeMu := &sync.Mutex{}
+	h.connWriteLocks.Store(connKey, writeMu)
+	defer func() {
+		// 连接关闭时清理写锁和停止标志，防止 sync.Map 无限增长导致内存泄漏
+		h.connWriteLocks.Delete(connKey)
+		h.stopFlags.Delete(connKey)
+	}()
+
 	log.Infof("WebSocket 连接已建立，用户: %s", claims.Username)
 
 	// 4) 会话循环：持续接收消息，直到连接断开或处理出错
@@ -97,8 +173,8 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 		}
 		log.Infof("收到 WebSocket 消息: %s", string(message))
 
-		// 4.1) JSON 停止指令：
-		// {"type":"stop","_internal_cmd_token":"..."}
+		// 路径 A：JSON 停止指令
+		// 格式：{"type":"stop","_internal_cmd_token":"..."}
 		// 命中后只设置 shouldStop 标志，不直接断开连接（允许后续继续提问）。
 		var ctrl map[string]interface{}
 		if len(message) > 0 && message[0] == '{' {
@@ -120,14 +196,16 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 								"date":      time.Now().Format("2006-01-02T15:04:05"),
 							}
 							b, _ := json.Marshal(resp)
+							writeMu.Lock()
 							_ = conn.WriteMessage(websocket.TextMessage, b)
+							writeMu.Unlock()
 							continue
 						}
 					}
 				}
 			}
 		}
-		// 4.2) 兼容旧协议：消息体等于 stopToken 时也触发停止
+		// 路径 B：旧协议兼容，消息体等于 stopToken 时触发停止
 		h.stopTokenLock.Lock()
 		stopTokenValue := h.stopToken
 		h.stopTokenLock.Unlock()
@@ -139,23 +217,29 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 			continue
 		}
 
-		// 4.3) 正常问答消息：进入 ChatService 完整链路（检索 -> LLM -> 流式回传）
-		// shouldStop 会被 service 在流式发送过程中轮询，用于中断继续下发。
+		// 路径 C：正常问答消息，进入完整 RAG 链路（检索 -> LLM -> 流式回传）
+		//
+		// shouldStop 是一个闭包，在 StreamResponse 流式发送每个 token 前被轮询。
+		// 若返回 true，service 层会静默丢弃后续 chunk，不再向前端推送，但不断开连接。
+		//
+		// 每轮新请求前必须清理旧的停止标志，否则上一次停止的 true 会污染本次请求：
+		// 例如用户点了停止后再发新问题，如果不清理，新问题会在第一个 token 就停掉。
 		shouldStop := func() bool {
 			key := sessionKey(conn)
 			v, ok := h.stopFlags.Load(key)
 			return ok && v.(bool)
 		}
-		// 每轮新请求前清理旧停止标志，避免把上一次 stop 误用于本次问答
+		// 清理旧停止标志，保证本轮请求从"未停止"状态开始
 		h.stopFlags.Delete(sessionKey(conn))
-		err = h.chatService.StreamResponse(c.Request.Context(), string(message), user, conn, shouldStop)
+		err = h.chatService.StreamResponse(c.Request.Context(), string(message), user, conn, shouldStop, writeMu)
 		if err != nil {
 			log.Errorf("处理流式响应失败: %v", err)
 			// 统一错误包，前端按 error 字段展示提示
 			errResp := map[string]string{"error": "AI服务暂时不可用，请稍后重试"}
 			b, _ := json.Marshal(errResp)
+			writeMu.Lock()
 			conn.WriteMessage(websocket.TextMessage, b)
-			// 与 Java 对齐：错误场景也发 completion，方便前端结束“生成中”状态
+			// 与 Java 对齐：错误场景也发 completion，方便前端结束"生成中"状态
 			resp := map[string]interface{}{
 				"type":      "completion",
 				"status":    "finished",
@@ -165,6 +249,7 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 			}
 			cb, _ := json.Marshal(resp)
 			_ = conn.WriteMessage(websocket.TextMessage, cb)
+			writeMu.Unlock()
 			break
 		}
 	}

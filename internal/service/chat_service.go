@@ -11,6 +11,7 @@ import (
 	"pai-smart-go/pkg/llm"
 	"pai-smart-go/pkg/log"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -18,7 +19,8 @@ import (
 
 // ChatService 定义了聊天操作的接口。
 type ChatService interface {
-	StreamResponse(ctx context.Context, query string, user *model.User, ws *websocket.Conn, shouldStop func() bool) error
+	// writeMu 是该连接的写锁，由 handler 层创建并传入，确保所有对 conn 的写操作串行化。
+	StreamResponse(ctx context.Context, query string, user *model.User, ws *websocket.Conn, shouldStop func() bool, writeMu *sync.Mutex) error
 }
 
 type chatService struct {
@@ -42,7 +44,7 @@ func NewChatService(searchService SearchService, llmClient llm.Client, conversat
 // 2) 组包阶段：构造 system/context + 历史 + 当前 user 问句
 // 3) 生成阶段：调用 LLM 流式接口（上游 SSE），并桥接为前端 WebSocket chunk
 // 4) 收尾阶段：发送 completion，并把完整问答写入 Redis 会话历史
-func (s *chatService) StreamResponse(ctx context.Context, query string, user *model.User, ws *websocket.Conn, shouldStop func() bool) error {
+func (s *chatService) StreamResponse(ctx context.Context, query string, user *model.User, ws *websocket.Conn, shouldStop func() bool, writeMu *sync.Mutex) error {
 	// 1. 检索阶段：使用 SearchService 检索上下文（topK=10）
 	// 返回的是结构化命中结果（文件、分块、文本、分数等），不是直接给 LLM 的 message 格式。
 	results, err := s.searchService.HybridSearch(ctx, query, 10, user)
@@ -63,13 +65,20 @@ func (s *chatService) StreamResponse(ctx context.Context, query string, user *mo
 	}
 	messages := s.composeMessages(systemMsg, history, query)
 
+	// 3. 提前落库用户消息（在 LLM 生成开始前）。
+	// 目的：即使用户在 AI 回答过程中切走页面，切回来时也能从 API 拉到本轮问题。
+	// 若落库失败只打日志，不影响主流程继续。
+	if err := s.persistUserMessage(context.Background(), user.ID, user.Username, query); err != nil {
+		log.Errorf("Failed to persist user message early: %v", err)
+	}
+
 	// 拦截 writer：同一份分片做两件事
-	// - 写入 answerBuilder，便于流结束后持久化完整答案
+	// - 写入 answerBuilder，便于流结束后持久化完整回答
 	// - 包装为 {"chunk":"..."} 并通过 WebSocket 推给前端
 	answerBuilder := &strings.Builder{}
-	interceptor := &wsWriterInterceptor{conn: ws, writer: answerBuilder, shouldStop: shouldStop}
+	interceptor := &wsWriterInterceptor{conn: ws, writer: answerBuilder, shouldStop: shouldStop, writeMu: writeMu}
 
-	// 3. 生成阶段：调用 LLM 客户端流式生成
+	// 4. 生成阶段：调用 LLM 客户端流式生成
 	// 注意协议方向：
 	// - 后端 -> LLM：HTTP JSON 请求（stream=true）
 	// - LLM -> 后端：SSE 流式响应
@@ -84,15 +93,13 @@ func (s *chatService) StreamResponse(ctx context.Context, query string, user *mo
 		return err
 	}
 
-	// 4. 收尾阶段：通知完成 + 会话落库（Redis）
-	sendCompletion(ws)
+	// 5. 收尾阶段：通知完成 + 落库 assistant 回答
+	sendCompletion(ws, writeMu)
 	fullAnswer := answerBuilder.String()
 	if len(fullAnswer) > 0 {
-		// 使用后台上下文，因为即使原始请求被取消，我们也希望保存成功生成的答案
-		err = s.addMessageToConversation(context.Background(), user.ID, query, fullAnswer)
-		if err != nil {
-			// 只记录错误，不返回给客户端，因为流式响应已经成功
-			log.Errorf("Failed to save conversation history: %v", err)
+		// 使用后台上下文，即使原始请求被取消也保存已生成的答案
+		if err = s.persistAssistantMessage(context.Background(), user.ID, fullAnswer); err != nil {
+			log.Errorf("Failed to persist assistant message: %v", err)
 		}
 	}
 
@@ -187,41 +194,69 @@ func (s *chatService) composeMessages(systemMsg string, history []model.ChatMess
 	return msgs
 }
 
-// addMessageToConversation 将本轮问答追加到 Redis 会话历史。
-// 写入顺序固定为 user -> assistant，保持时间线一致。
-func (s *chatService) addMessageToConversation(ctx context.Context, userID uint, question, answer string) error {
+// persistUserMessage 在 LLM 开始生成前，将用户本轮问题先行落库。
+// 这样即使用户在 AI 回答过程中导航离开，再回来时也能从 API 拉到本轮问题记录。
+func (s *chatService) persistUserMessage(ctx context.Context, userID uint, username, question string) error {
 	conversationID, err := s.conversationRepo.GetOrCreateConversationID(ctx, userID)
 	if err != nil {
+		log.Errorf("[persistUserMessage] userID=%d 获取 conversationID 失败: %v", userID, err)
 		return fmt.Errorf("failed to get or create conversation ID: %w", err)
 	}
-
+	log.Infof("[persistUserMessage] userID=%d conversationID=%s 准备写入 user 消息", userID, conversationID)
 	history, err := s.conversationRepo.GetConversationHistory(ctx, conversationID)
 	if err != nil {
+		log.Errorf("[persistUserMessage] 获取历史失败: %v", err)
 		return fmt.Errorf("failed to get conversation history: %w", err)
 	}
-
-	// 添加用户消息
 	history = append(history, model.ChatMessage{
 		Role:      "user",
 		Content:   question,
 		Timestamp: time.Now(),
+		Username:  username,
 	})
+	if err = s.conversationRepo.UpdateConversationHistory(ctx, conversationID, history); err != nil {
+		log.Errorf("[persistUserMessage] 写入 Redis 失败: %v", err)
+		return err
+	}
+	log.Infof("[persistUserMessage] userID=%d user 消息写入 Redis 成功，当前历史 %d 条", userID, len(history))
+	return nil
+}
 
-	// 添加助手消息
+// persistAssistantMessage 在 LLM 流式输出完成后，将完整回答追加落库。
+// 与 persistUserMessage 配对使用，分两步落库保证即使中途断开用户消息也不丢失。
+func (s *chatService) persistAssistantMessage(ctx context.Context, userID uint, answer string) error {
+	conversationID, err := s.conversationRepo.GetOrCreateConversationID(ctx, userID)
+	if err != nil {
+		log.Errorf("[persistAssistantMessage] userID=%d 获取 conversationID 失败: %v", userID, err)
+		return fmt.Errorf("failed to get or create conversation ID: %w", err)
+	}
+	log.Infof("[persistAssistantMessage] userID=%d conversationID=%s 准备写入 assistant 消息", userID, conversationID)
+	history, err := s.conversationRepo.GetConversationHistory(ctx, conversationID)
+	if err != nil {
+		log.Errorf("[persistAssistantMessage] 获取历史失败: %v", err)
+		return fmt.Errorf("failed to get conversation history: %w", err)
+	}
 	history = append(history, model.ChatMessage{
 		Role:      "assistant",
 		Content:   answer,
 		Timestamp: time.Now(),
+		Username:  "",
 	})
-
-	return s.conversationRepo.UpdateConversationHistory(ctx, conversationID, history)
+	if err = s.conversationRepo.UpdateConversationHistory(ctx, conversationID, history); err != nil {
+		log.Errorf("[persistAssistantMessage] 写入 Redis 失败: %v", err)
+		return err
+	}
+	log.Infof("[persistAssistantMessage] userID=%d assistant 消息写入 Redis 成功，当前历史 %d 条", userID, len(history))
+	return nil
 }
 
 // wsWriterInterceptor 是对 websocket.Conn 的封装，用于捕获写入的消息。
+// writeMu 由 handler 层传入，保证读协程（停止指令回包）和流式输出协程不会并发写同一个连接。
 type wsWriterInterceptor struct {
 	conn       *websocket.Conn
 	writer     *strings.Builder
 	shouldStop func() bool
+	writeMu    *sync.Mutex
 }
 
 // WriteMessage 满足 llm.MessageWriter 接口。
@@ -235,11 +270,15 @@ func (w *wsWriterInterceptor) WriteMessage(messageType int, data []byte) error {
 	// 将模型分片包装为前端统一消费格式：{"chunk":"..."}
 	payload := map[string]string{"chunk": string(data)}
 	b, _ := json.Marshal(payload)
-	return w.conn.WriteMessage(messageType, b)
+	w.writeMu.Lock()
+	err := w.conn.WriteMessage(messageType, b)
+	w.writeMu.Unlock()
+	return err
 }
 
-// sendCompletion 发送完成通知 JSON
-func sendCompletion(ws *websocket.Conn) {
+// sendCompletion 发送完成通知 JSON。
+// writeMu 保证与流式 chunk 写入不会并发，避免 gorilla/websocket 帧损坏。
+func sendCompletion(ws *websocket.Conn, writeMu *sync.Mutex) {
 	notif := map[string]interface{}{
 		"type":      "completion",
 		"status":    "finished",
@@ -248,7 +287,9 @@ func sendCompletion(ws *websocket.Conn) {
 		"date":      time.Now().Format("2006-01-02T15:04:05"),
 	}
 	b, _ := json.Marshal(notif)
+	writeMu.Lock()
 	_ = ws.WriteMessage(websocket.TextMessage, b)
+	writeMu.Unlock()
 }
 
 func (s *chatService) buildGenerationParams() *llm.GenerationParams {
