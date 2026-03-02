@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const chatStore = useChatStore();
+const authStore = useAuthStore();
 const { input, list, wsStatus, wsData } = storeToRefs(chatStore);
 
 const latestMessage = computed(() => {
@@ -44,7 +45,8 @@ const handleSend = async () => {
 
   list.value.push({
     content: input.value.message,
-    role: 'user'
+    role: 'user',
+    username: authStore.userInfo.username
   });
   chatStore.wsSend(input.value.message);
   list.value.push({

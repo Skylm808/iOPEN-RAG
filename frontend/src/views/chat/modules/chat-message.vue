@@ -17,7 +17,7 @@ function handleCopy(content: string) {
 const chatStore = useChatStore();
 
 // 存储文件名和对应的事件处理
-const sourceFiles = ref<Array<{fileName: string, id: string}>>([]);
+const sourceFiles = ref<Array<{ fileName: string; id: string }>>([]);
 
 // 处理来源文件链接的函数
 function processSourceLinks(text: string): string {
@@ -118,7 +118,7 @@ async function handleSourceFileClick(fileName: string) {
         <SvgIcon icon="ph:user-circle" class="text-icon-large color-white" />
       </NAvatar>
       <div class="flex-col gap-1">
-        <NText class="text-4 font-bold">{{ authStore.userInfo.username }}</NText>
+        <NText class="text-4 font-bold">{{ msg.username || authStore.userInfo.username }}</NText>
         <NText class="text-3 color-gray-500">{{ formatDate(msg.timestamp) }}</NText>
       </div>
     </div>

@@ -143,6 +143,13 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     if (pass) {
       token.value = loginToken.token;
 
+      // 3. 重建 WebSocket 连接，确保新连接使用当前用户的 token。
+      //    Pinia store 是全局单例，不重建的话普通用户的消息会沿用旧连接
+      //    （可能是上一个用户的 token），导致消息被存到错误的用户 Redis key 下。
+      const chatStore = useChatStore();
+      chatStore.list = []; // 清空残留消息，防止新用户看到前一个用户的聊天内容
+      chatStore.reconnect(); // 用新 token URL 重建 WebSocket
+
       return true;
     }
 
@@ -170,6 +177,10 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
 
       if (!pass) {
         resetStore();
+      } else {
+        // 页面刷新后重新连接 WebSocket
+        const chatStore = useChatStore();
+        chatStore.reconnect();
       }
     }
   }
@@ -185,6 +196,9 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     if (!error) {
       resetStore();
       useKnowledgeBaseStore().$reset();
+      // 清空聊天记录，防止下一个登录用户看到前一个用户的消息（即"闪一下"问题）
+      const chatStore = useChatStore();
+      chatStore.list = [];
     }
   }
 
