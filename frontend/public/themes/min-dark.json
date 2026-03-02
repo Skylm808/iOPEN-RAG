@@ -281,10 +281,7 @@
     },
     {
       "name": "[Custom] Markdown punctuation definition brackets",
-      "scope": [
-        "punctuation.definition.string.begin.markdown",
-        "punctuation.definition.string.end.markdown"
-      ],
+      "scope": ["punctuation.definition.string.begin.markdown", "punctuation.definition.string.end.markdown"],
       "settings": {
         "foreground": "#79b8ff"
       }

@@ -38,16 +38,7 @@
       "#FFFFFF"
     ],
     "brightOther": ["#E9F284", "#8BE9FE"],
-    "other": [
-      "#44475A75",
-      "#FFFFFF1A",
-      "#FFFFFF",
-      "#44475A70",
-      "#424450",
-      "#343746",
-      "#21222C",
-      "#191A21"
-    ]
+    "other": ["#44475A75", "#FFFFFF1A", "#FFFFFF", "#44475A70", "#424450", "#343746", "#21222C", "#191A21"]
   },
   "colors": {
     "terminal.background": "#282A36",
@@ -586,10 +577,7 @@
     },
     {
       "name": "Decorators",
-      "scope": [
-        "meta.decorator variable.other.readwrite",
-        "meta.decorator variable.other.property"
-      ],
+      "scope": ["meta.decorator variable.other.readwrite", "meta.decorator variable.other.property"],
       "settings": {
         "foreground": "#50FA7B",
         "fontStyle": "italic"
@@ -828,10 +816,7 @@
     },
     {
       "name": "RegExp start and end characters",
-      "scope": [
-        "string.regexp punctuation.definition.string.begin",
-        "string.regexp punctuation.definition.string.end"
-      ],
+      "scope": ["string.regexp punctuation.definition.string.begin", "string.regexp punctuation.definition.string.end"],
       "settings": {
         "foreground": "#FF5555"
       }
@@ -852,10 +837,7 @@
     },
     {
       "name": "Assertion operators",
-      "scope": [
-        "punctuation.definition.group.assertion.regexp",
-        "keyword.operator.negation.regexp"
-      ],
+      "scope": ["punctuation.definition.group.assertion.regexp", "keyword.operator.negation.regexp"],
       "settings": {
         "foreground": "#FF5555"
       }
@@ -883,10 +865,7 @@
     },
     {
       "name": "Property quotes (temporary vscode fix)",
-      "scope": [
-        "punctuation.support.type.property-name.begin",
-        "punctuation.support.type.property-name.end"
-      ],
+      "scope": ["punctuation.support.type.property-name.begin", "punctuation.support.type.property-name.end"],
       "settings": {
         "foreground": "#8BE9FE"
       }
@@ -919,10 +898,7 @@
     },
     {
       "name": "Destructuring / aliasing reference name (LHS)",
-      "scope": [
-        "meta.import variable.other.readwrite",
-        "meta.variable.assignment.destructured.object.coffee variable"
-      ],
+      "scope": ["meta.import variable.other.readwrite", "meta.variable.assignment.destructured.object.coffee variable"],
       "settings": {
         "fontStyle": "italic",
         "foreground": "#FFB86C"

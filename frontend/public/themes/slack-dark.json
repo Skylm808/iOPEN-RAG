@@ -370,11 +370,7 @@
     },
     {
       "name": "coloring of the Java import and package identifiers",
-      "scope": [
-        "storage.modifier.import.java",
-        "variable.language.wildcard.java",
-        "storage.modifier.package.java"
-      ],
+      "scope": ["storage.modifier.import.java", "variable.language.wildcard.java", "storage.modifier.package.java"],
       "settings": {
         "foreground": "#d4d4d4"
       }
@@ -454,12 +450,7 @@
     },
     {
       "name": "Variable and parameter name",
-      "scope": [
-        "variable",
-        "meta.definition.variable.name",
-        "support.variable",
-        "entity.name.variable"
-      ],
+      "scope": ["variable", "meta.definition.variable.name", "support.variable", "entity.name.variable"],
       "settings": {
         "foreground": "#9CDCFE"
       }

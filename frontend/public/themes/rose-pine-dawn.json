@@ -489,12 +489,7 @@
       }
     },
     {
-      "scope": [
-        "entity.name.section",
-        "entity.name.tag",
-        "entity.name.namespace",
-        "entity.name.type"
-      ],
+      "scope": ["entity.name.section", "entity.name.tag", "entity.name.namespace", "entity.name.type"],
       "settings": {
         "foreground": "#56949f"
       }

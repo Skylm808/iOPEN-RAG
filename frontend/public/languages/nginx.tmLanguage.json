@@ -1,14 +1,5 @@
 {
-  "fileTypes": [
-    "conf.erb",
-    "conf",
-    "ngx",
-    "nginx.conf",
-    "mime.types",
-    "fastcgi_params",
-    "scgi_params",
-    "uwsgi_params"
-  ],
+  "fileTypes": ["conf.erb", "conf", "ngx", "nginx.conf", "mime.types", "fastcgi_params", "scgi_params", "uwsgi_params"],
   "foldingStartMarker": "\\{\\s*$",
   "foldingStopMarker": "^\\s*\\}",
   "keyEquivalent": "^~N",

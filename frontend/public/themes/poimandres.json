@@ -477,11 +477,7 @@
       }
     },
     {
-      "scope": [
-        "variable.other.object.property",
-        "variable.other.property",
-        "support.variable.property"
-      ],
+      "scope": ["variable.other.object.property", "variable.other.property", "support.variable.property"],
       "settings": {
         "foreground": "#e4f0fb"
       }
@@ -493,11 +489,7 @@
       }
     },
     {
-      "scope": [
-        "variable - meta.import",
-        "constant.other.placeholder",
-        "meta.object-literal.key-meta.object.member"
-      ],
+      "scope": ["variable - meta.import", "constant.other.placeholder", "meta.object-literal.key-meta.object.member"],
       "settings": {
         "foreground": "#e4f0fb"
       }
@@ -515,12 +507,7 @@
       }
     },
     {
-      "scope": [
-        "variable.language.this",
-        "storage.modifier.async",
-        "storage.modifier",
-        "variable.language.super"
-      ],
+      "scope": ["variable.language.this", "storage.modifier.async", "storage.modifier", "variable.language.super"],
       "settings": {
         "foreground": "#5DE4c7"
       }
@@ -780,10 +767,7 @@
       }
     },
     {
-      "scope": [
-        "text.html.basic entity.other.attribute-name.html",
-        "text.html.basic entity.other.attribute-name"
-      ],
+      "scope": ["text.html.basic entity.other.attribute-name.html", "text.html.basic entity.other.attribute-name"],
       "settings": {
         "foreground": "#5fb3a1",
         "fontStyle": "italic"
@@ -839,10 +823,7 @@
       }
     },
     {
-      "scope": [
-        "tag.decorator.js entity.name.tag.js",
-        "tag.decorator.js punctuation.definition.tag.js"
-      ],
+      "scope": ["tag.decorator.js entity.name.tag.js", "tag.decorator.js punctuation.definition.tag.js"],
       "settings": {
         "foreground": "#42675A",
         "fontStyle": "italic"
@@ -938,9 +919,7 @@
       }
     },
     {
-      "scope": [
-        "text.html.markdown markup.inline.raw.markdown punctuation.definition.raw.markdown"
-      ],
+      "scope": ["text.html.markdown markup.inline.raw.markdown punctuation.definition.raw.markdown"],
       "settings": {
         "foreground": "#91B4D5"
       }
@@ -1098,11 +1077,7 @@
       }
     },
     {
-      "scope": [
-        "entity.name.section.markdown",
-        "markup.heading.setext.1.markdown",
-        "markup.heading.setext.2.markdown"
-      ],
+      "scope": ["entity.name.section.markdown", "markup.heading.setext.1.markdown", "markup.heading.setext.2.markdown"],
       "settings": {
         "foreground": "#e4f0fb",
         "fontStyle": "bold"

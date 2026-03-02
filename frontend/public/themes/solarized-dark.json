@@ -65,12 +65,7 @@
     },
     {
       "name": "Class name",
-      "scope": [
-        "entity.name.class",
-        "entity.name.type",
-        "entity.name.namespace",
-        "entity.name.scope-resolution"
-      ],
+      "scope": ["entity.name.class", "entity.name.type", "entity.name.namespace", "entity.name.scope-resolution"],
       "settings": {
         "fontStyle": "",
         "foreground": "#CB4B16"
