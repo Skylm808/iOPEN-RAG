@@ -23,6 +23,7 @@ import (
 	"pai-smart-go/pkg/kafka"
 	"pai-smart-go/pkg/llm"
 	"pai-smart-go/pkg/log"
+	"pai-smart-go/pkg/reranker"
 	"pai-smart-go/pkg/storage"
 	"pai-smart-go/pkg/tika"
 	"pai-smart-go/pkg/token"
@@ -70,7 +71,17 @@ func main() {
 	adminService := service.NewAdminService(orgTagRepo, userRepository, conversationRepo)
 	uploadService := service.NewUploadService(uploadRepo, userRepository, cfg.MinIO)
 	documentService := service.NewDocumentService(uploadRepo, userRepository, orgTagRepo, cfg.MinIO, tikaClient)
-	searchService := service.NewSearchService(embeddingClient, es.ESClient, userService, uploadRepo)
+
+	// 初始化 Reranker 客户端（可选）：enabled=false 时传 nil，HybridSearch 自动降级到 ES rescore 逻辑
+	var rerankerClient reranker.Client
+	if cfg.Reranker.Enabled {
+		rerankerClient = reranker.NewClient(cfg.Reranker)
+		log.Infof("Reranker 已启用, model: %s, base_url: %s", cfg.Reranker.Model, cfg.Reranker.BaseURL)
+	} else {
+		log.Info("Reranker 未启用，HybridSearch 将使用 ES rescore 模式")
+	}
+
+	searchService := service.NewSearchService(embeddingClient, es.ESClient, userService, uploadRepo, rerankerClient)
 	conversationService := service.NewConversationService(conversationRepo)
 	chatService := service.NewChatService(searchService, llmClient, conversationRepo)
 

@@ -21,6 +21,7 @@ type Config struct {
 	Elasticsearch ElasticsearchConfig `mapstructure:"elasticsearch"`
 	MinIO         MinIOConfig         `mapstructure:"minio"`
 	Embedding     EmbeddingConfig     `mapstructure:"embedding"`
+	Reranker      RerankConfig        `mapstructure:"reranker"`
 	LLM           LLMConfig           `mapstructure:"llm"`
 	AI            AIConfig            `mapstructure:"ai"`
 }
@@ -97,6 +98,16 @@ type EmbeddingConfig struct {
 	BaseURL    string `mapstructure:"base_url"`
 	Model      string `mapstructure:"model"`
 	Dimensions int    `mapstructure:"dimensions"`
+}
+
+// RerankConfig 存储 Cross-Encoder Reranker 服务相关的配置。
+// Enabled 为 false 时，HybridSearch 降级回 ES rescore 原有逻辑。
+type RerankConfig struct {
+	Enabled bool   `mapstructure:"enabled"`
+	BaseURL string `mapstructure:"base_url"`
+	APIKey  string `mapstructure:"api_key"`
+	Model   string `mapstructure:"model"`
+	TopN    int    `mapstructure:"top_n"`
 }
 
 // LLMConfig 存储大语言模型相关的配置。

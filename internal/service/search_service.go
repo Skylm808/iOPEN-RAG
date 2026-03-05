@@ -11,6 +11,7 @@ import (
 	"pai-smart-go/internal/repository"
 	"pai-smart-go/pkg/embedding"
 	"pai-smart-go/pkg/log"
+	"pai-smart-go/pkg/reranker"
 	"regexp"
 	"strconv"
 	"strings"
@@ -27,33 +28,39 @@ type searchService struct {
 	embeddingClient embedding.Client
 	esClient        *elasticsearch.Client
 	userService     UserService
-	uploadRepo      repository.UploadRepository // 新增：UploadRepository 依赖
+	uploadRepo      repository.UploadRepository
+	rerankerClient  reranker.Client // Cross-Encoder Reranker 客户端（可为 nil 表示禁用）
 }
 
 // NewSearchService 创建一个新的 SearchService 实例。
-func NewSearchService(embeddingClient embedding.Client, esClient *elasticsearch.Client, userService UserService, uploadRepo repository.UploadRepository) SearchService {
+func NewSearchService(embeddingClient embedding.Client, esClient *elasticsearch.Client, userService UserService, uploadRepo repository.UploadRepository, rerankerClient reranker.Client) SearchService {
 	return &searchService{
 		embeddingClient: embeddingClient,
 		esClient:        esClient,
 		userService:     userService,
-		uploadRepo:      uploadRepo, // 新增
+		uploadRepo:      uploadRepo,
+		rerankerClient:  rerankerClient,
 	}
 }
 
-// HybridSearch 执行混合检索主流程（与 archDocs/search_service_workflow.md 对齐）。
+// HybridSearch 执行混合检索主流程（与 notes/search_service_workflow.md 对齐）。
 // 流程总览：
-// 1) 权限与预处理：获取用户有效组织标签，清洗查询词得到 normalized/phrase
-// 2) 向量化 Query：使用原始 query 生成 embedding（保留语气与上下文语义）
-// 3) 构建混合查询：单次 ES 请求内组合 knn + bool（must/filter/should）
-// 4) 执行搜索：在候选窗口内通过 rescore 进行二次排序
-// 5) 解析响应：提取命中块与分数
-// 6) 0 命中兜底：保留查询骨架，仅将 must/rescore 的 query 改为 phrase 重试一次
-// 7) 元数据补全：按 file_md5 回查 MySQL，组装最终 DTO
+//  1. 权限与预处理：获取用户有效组织标签，清洗查询词得到 normalized/phrase
+//  2. 向量化 Query：使用原始 query 生成 embedding（保留语气与上下文语义）
+//  3. 构建混合查询：单次 ES 请求内组合 knn + bool（must/filter/should）
+//  4. 执行搜索：在候选窗口内通过 rescore 进行 BM25 二次排序（第一阶段精b排）
+//  5. 解析响应：提取命中块与分数
+//  6. 0 命中兜底：保留查询骨架，仅将 must/rescore 的 query 改为 phrase 重试一次
+//  7. 元数据补全：按 file_md5 回查 MySQL，组装初步 DTO
+//  8. Cross-Encoder 精b排（可选）：若 rerankerClient != nil，将候选文本批量发给
+//     Reranker，用 (query, chunk) 联合建模打分，按 relevance_score 重排取 TopK；
+//     Reranker 调用失败时自动降级，返回步骤 7 的 ES 排序结果，不影响可用性。
 //
 // 关键语义：
 // - 不是“先向量查再关键词查”的两次独立请求，而是同一次请求里的融合检索。
 // - 权限在检索阶段直接过滤（私有 / 公开 / 组织），避免越权命中进入候选集。
-// - rescore 只作用于候选窗口，用更严格关键词匹配提升排序精度。
+// - rescore 是第一阶段精b排（ES 内置 BM25），Cross-Encoder 是第二阶段精b排（联合建模更准确）。
+// - rerankerClient 为 nil 时（config.yaml enabled: false），完全兼容原有逻辑。
 func (s *searchService) HybridSearch(ctx context.Context, query string, topK int, user *model.User) ([]model.SearchResponseDTO, error) {
 	log.Infof("[SearchService] 开始执行混合搜索, query: '%s', topK: %d, user: %s", query, topK, user.Username)
 
@@ -269,8 +276,8 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 	}
 	log.Infof("[SearchService] 批量获取文件名成功, 共获取 %d 个文件信息", len(fileNameMap))
 
-	// 组装最终返回 DTO（含 chunk 内容、分数、权限字段与补全后的文件名）。
-	log.Info("[SearchService] 步骤7: 开始组装最终响应 DTO")
+	// 组装初步结果 DTO（后续可能被 Reranker 重排序）
+	log.Info("[SearchService] 步骤7: 开始组装初步响应 DTO")
 	var results []model.SearchResponseDTO
 	for _, hit := range esResponse.Hits.Hits {
 		fileName := fileNameMap[hit.Source.FileMD5]
@@ -289,6 +296,39 @@ func (s *searchService) HybridSearch(ctx context.Context, query string, topK int
 			IsPublic:    hit.Source.IsPublic,
 		}
 		results = append(results, dto)
+	}
+
+	// 步骤 8：Cross-Encoder Reranker 精b排。
+	// 开关唯一入口：s.rerankerClient != nil。
+	// 为 nil 或 enabled=false 时，直接返回 ES 阶段的结果，完全兼容原逻辑。
+	if s.rerankerClient != nil && len(results) > 0 {
+		log.Infof("[SearchService] 步骤8: 启动 Cross-Encoder Reranker 精b排, 候选集大小: %d", len(results))
+
+		// 提取候选集的文本内容，顺序与 results 一一对应
+		docs := make([]string, len(results))
+		for i, r := range results {
+			docs[i] = r.TextContent
+		}
+
+		// 调用 Reranker，返回的 RerankResult.Index 指向 docs 中的原始下标
+		rerankResults, err := s.rerankerClient.Rerank(ctx, query, docs, topK)
+		if err != nil {
+			// Reranker 失败时降级：记录日志但不报错，返回 ES 原次序结果
+			log.Warnf("[SearchService] Reranker 调用失败，降级回 ES 结果: %v", err)
+		} else {
+			// 按 Reranker 分数重新展开 DTO，替换原 ES score
+			reranked := make([]model.SearchResponseDTO, 0, len(rerankResults))
+			for _, rr := range rerankResults {
+				if rr.Index < len(results) {
+					dto := results[rr.Index]
+					dto.Score = float64(rr.RelevanceScore) // 用 Reranker 相关性分替探 ES 分
+					reranked = append(reranked, dto)
+				}
+			}
+			results = reranked
+			log.Infof("[SearchService] Reranker 精b排完成, 最终返回 %d 条结果, 首位 Score: %.4f",
+				len(results), results[0].Score)
+		}
 	}
 
 	log.Infof("[SearchService] 组装最终响应成功, 返回 %d 条结果", len(results))
