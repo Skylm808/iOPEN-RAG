@@ -88,23 +88,72 @@ iopen-go/
 
 ### 1. 依赖服务
 
-确保以下服务已运行：
-- MySQL / Redis / Elasticsearch / MinIO / Kafka
-- Apache Tika Server
-- Xinference（用于 Reranker，可选）
+确保以下服务已在本地或服务器上运行：
 
-### 2. 配置
+| 服务 | 默认端口 | 说明 |
+|---|---|---|
+| MySQL | 3306 | 用户、文件元数据存储 |
+| Redis | 6379 | 会话历史、分片进度、缓存 |
+| Elasticsearch | 9200 | 向量索引与全文检索 |
+| MinIO | 9000 | 文件对象存储 |
+| Kafka | 9092 | 异步文档处理消息队列 |
+| Apache Tika | 9998 | 文档解析（PDF/Word/PPTX 等） |
+
+### 2. 配置文件
 
 ```bash
-cp configs/config.yaml configs/config.yaml
-# 编辑 config.yaml，填入各服务地址和 API Key
+cp configs/config.example.yaml configs/config.yaml
 ```
 
-关键配置项：
+编辑 `configs/config.yaml`，填入以下关键配置：
+
+**① 数据库连接**
+```yaml
+database:
+  mysql:
+    dsn: "root:YOUR_PASSWORD@tcp(127.0.0.1:3306)/YOUR_DB?charset=utf8mb4&parseTime=True&loc=Local"
+  redis:
+    addr: "127.0.0.1:6379"
+    password: "YOUR_REDIS_PASSWORD"
+```
+
+**② Embedding 向量化（必填）**
+
+> 用于将文档分块和查询文本转为向量，支持 DashScope（阿里云）或其他兼容 OpenAI 接口的服务。
+
+```yaml
+embedding:
+  model: "text-embedding-v4"
+  api_key: "YOUR_DASHSCOPE_API_KEY"   # 阿里云 DashScope 控制台获取
+  base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+  dimensions: 2048
+```
+
+**③ LLM 生成（必填）**
+
+> 支持 Gemini / DeepSeek / Ollama 等任意兼容 OpenAI 接口的模型，修改 `base_url` 和 `model` 即可切换。
+
+```yaml
+llm:
+  # Gemini（推荐）
+  base_url: "https://generativelanguage.googleapis.com/v1beta/openai"
+  model: "gemini-2.5-flash"
+  api_key: "YOUR_GEMINI_API_KEY"      # Google AI Studio 获取
+
+  # DeepSeek（可选替换）
+  # base_url: "https://api.deepseek.com/v1"
+  # model: "deepseek-chat"
+  # api_key: "YOUR_DEEPSEEK_API_KEY"
+```
+
+**④ Cross-Encoder Reranker（可选）**
+
+> 关闭时自动降级回 ES 内部排序，不影响功能。
+
 ```yaml
 reranker:
-  enabled: true            # 设为 false 可禁用 Reranker
-  base_url: "http://YOUR_SERVER_IP:9997/v1"
+  enabled: false                        # true 启用二阶段精排
+  base_url: "http://YOUR_IP:9997/v1"   # Xinference 服务地址
   model: "bge-reranker-v2-m3"
 ```
 
@@ -122,6 +171,8 @@ npm install
 npm run dev
 ```
 
+访问 `http://localhost:9527` 即可使用。
+
 ---
 
 ## Reranker 部署（可选）
@@ -129,15 +180,17 @@ npm run dev
 使用 **Xinference** 本地部署 `bge-reranker-v2-m3`：
 
 ```bash
-# 安装
+# 安装（需 Python 3.10+）
 pip install "xinference[transformers]"
 
-# 启动服务
+# 启动服务（0.0.0.0 允许局域网访问）
 xinference-local --host 0.0.0.0 --port 9997
 
-# 通过 UI 加载模型：http://YOUR_IP:9997
-# 选择 Model Type: rerank，Engine: sentence_transformers，Model: bge-reranker-v2-m3
+# 通过 WebUI 加载模型：http://YOUR_IP:9997
+# Model Type: rerank | Engine: sentence_transformers | Model: bge-reranker-v2-m3
 ```
+
+启动后将 `config.yaml` 中 `reranker.enabled` 改为 `true`，`base_url` 填入服务器 IP，重启后端即可生效。
 
 ---
 
