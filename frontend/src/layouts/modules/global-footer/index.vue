@@ -6,8 +6,8 @@ defineOptions({
 
 <template>
   <DarkModeContainer class="h-full flex-center">
-    <a href="https://github.com/itwanger/PaiSmart.git" target="_blank" rel="noopener noreferrer">
-      Copyright MIT © 2025 PaiSmart
+    <a href="https://github.com/Skylm808" target="_blank" rel="noopener noreferrer">
+      Copyright MIT © 2025 iOPEN
     </a>
   </DarkModeContainer>
 </template>

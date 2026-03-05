@@ -93,7 +93,7 @@ const handShortcut = (e: KeyboardEvent) => {
     <textarea
       ref="inputRef"
       v-model.trim="input.message"
-      placeholder="给 派聪明 发送消息"
+      placeholder="给 iOPEN 发送消息"
       class="min-h-10 w-full cursor-text resize-none b-none bg-transparent color-#333 caret-[rgb(var(--primary-color))] outline-none dark:color-#f1f1f1"
       @keydown="handShortcut"
     />
