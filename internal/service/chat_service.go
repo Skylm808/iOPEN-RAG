@@ -218,7 +218,13 @@ func (s *chatService) persistUserMessage(ctx context.Context, userID uint, usern
 		log.Errorf("[persistUserMessage] 写入 Redis 失败: %v", err)
 		return err
 	}
-	log.Infof("[persistUserMessage] userID=%d user 消息写入 Redis 成功，当前历史 %d 条", userID, len(history))
+	// len(history) 是 append 后的数，UpdateConversationHistory 内部已截断为最多 20 存入 Redis
+	// 但 Go 传 slice 是传值，调用方的 history 变量不受影响，所以这里计算实际写入 Redis 的条数
+	actualSaved := len(history)
+	if actualSaved > 20 {
+		actualSaved = 20
+	}
+	log.Infof("[persistUserMessage] userID=%d user 消息写入 Redis 成功，Redis 实存 %d 条（append 后 %d 条已截断）", userID, actualSaved, len(history))
 	return nil
 }
 
@@ -246,7 +252,11 @@ func (s *chatService) persistAssistantMessage(ctx context.Context, userID uint, 
 		log.Errorf("[persistAssistantMessage] 写入 Redis 失败: %v", err)
 		return err
 	}
-	log.Infof("[persistAssistantMessage] userID=%d assistant 消息写入 Redis 成功，当前历史 %d 条", userID, len(history))
+	actualSaved := len(history)
+	if actualSaved > 20 {
+		actualSaved = 20
+	}
+	log.Infof("[persistAssistantMessage] userID=%d assistant 消息写入 Redis 成功，Redis 实存 %d 条（append 后 %d 条已截断）", userID, actualSaved, len(history))
 	return nil
 }
 
