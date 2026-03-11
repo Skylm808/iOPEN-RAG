@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"pai-smart-go/internal/model"
 	"pai-smart-go/internal/service"
 	"pai-smart-go/pkg/log"
 	"pai-smart-go/pkg/token"
@@ -41,15 +42,11 @@ type ChatHandler struct {
 	userService service.UserService
 	jwtManager  *token.JWTManager
 
-	// stopToken 是进程内全局唯一的停止口令（简化实现，适合单实例部署）。
-	// 前端通过 GET /chat/websocket-token 申请该口令，之后通过 WebSocket 消息携带它触发停止。
-	// ⚠️ 已知缺陷：多用户场景下，后申请者会覆盖前申请者的口令，导致先申请者无法停止。
-	//    生产改进方案：以 sessionID 为 key 将口令存入 Redis，实现 per-connection 独立口令。
-	stopToken string
-
-	// stopTokenLock 互斥锁，保护 stopToken 字符串的并发读写安全。
-	// 注意：这里使用 sync.Mutex 而非 sync.Map，是因为被保护的是单个 string 变量而非 Map 结构。
-	stopTokenLock sync.Mutex
+	// stopTokens 存储每个用户的停止口令，key 为 "user:{userID}"，value 为 string 口令。
+	// 每次前端调用 GET /chat/websocket-token 生成新口令并按 userID 存入；
+	// WebSocket 收到停止消息时，按当前连接的 userID 取口令对比，验证通过才执行停止。
+	// 相比之前的全局单一 stopToken，此方案确保多用户并发申请口令时互不覆盖。
+	stopTokens sync.Map
 
 	// stopFlags 存储"某条 WebSocket 连接是否被请求停止"的标志。
 	// key：连接对象的内存地址字符串（由 sessionKey(conn) 生成，唯一标识一条连接）
@@ -91,12 +88,20 @@ func NewChatHandler(chatService service.ChatService, userService service.UserSer
 // 口令的作用是"鉴权"：证明前端有权发出停止指令，防止其他连接被误停。
 // 确定"停止哪条连接"由 stopFlags（连接维度）负责，与口令无关。
 func (h *ChatHandler) GetWebsocketStopToken(c *gin.Context) {
-	h.stopTokenLock.Lock()
-	defer h.stopTokenLock.Unlock()
-	// 在多副本部署中，口令应放到共享存储（如 Redis）保证跨实例可见。
-	// 当前实现使用进程内单口令，适合单实例场景。
-	h.stopToken = "WSS_STOP_CMD_" + token.GenerateRandomString(16)
-	c.JSON(http.StatusOK, gin.H{"code": http.StatusOK, "message": "success", "data": gin.H{"cmdToken": h.stopToken}})
+	// 从 auth 中间件注入的 gin.Context 中取当前用户（已通过 JWT 验证）
+	userVal, exists := c.Get("user")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"code": http.StatusUnauthorized, "message": "未登录"})
+		return
+	}
+	currentUser := userVal.(*model.User)
+
+	// 为该用户生成新口令，存入 per-user Map；同一用户多次申请时旧口令被覆盖（正常行为）
+	newToken := "WSS_STOP_CMD_" + token.GenerateRandomString(16)
+	userKey := fmt.Sprintf("user:%d:stop_token", currentUser.ID)
+	h.stopTokens.Store(userKey, newToken)
+
+	c.JSON(http.StatusOK, gin.H{"code": http.StatusOK, "message": "success", "data": gin.H{"cmdToken": newToken}})
 }
 
 // Handle 处理 WebSocket 会话主循环。
@@ -181,9 +186,12 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 			if err := json.Unmarshal(message, &ctrl); err == nil {
 				if t, ok := ctrl["type"].(string); ok && t == "stop" {
 					if tok, ok := ctrl["_internal_cmd_token"].(string); ok {
-						h.stopTokenLock.Lock()
-						valid := (tok == h.stopToken)
-						h.stopTokenLock.Unlock()
+						// 按当前连接用户的 userID 取口令，隔离不同用户的停止指令
+						userKey := fmt.Sprintf("user:%d:stop_token", user.ID)
+						valid := false
+						if stored, ok := h.stopTokens.Load(userKey); ok {
+							valid = (tok == stored.(string))
+						}
 						if valid {
 							// 设置连接级停止标志，供 shouldStop 回调读取
 							key := sessionKey(conn)
@@ -205,11 +213,9 @@ func (h *ChatHandler) Handle(c *gin.Context) {
 				}
 			}
 		}
-		// 路径 B：旧协议兼容，消息体等于 stopToken 时触发停止
-		h.stopTokenLock.Lock()
-		stopTokenValue := h.stopToken
-		h.stopTokenLock.Unlock()
-		if string(message) == stopTokenValue {
+		// 路径 B：旧协议兼容，消息体等于该用户的 stopToken 时触发停止
+		userKey := fmt.Sprintf("user:%d:stop_token", user.ID)
+		if stored, ok := h.stopTokens.Load(userKey); ok && string(message) == stored.(string) {
 			log.Info("收到停止指令，正在中断流式响应...")
 			// 同样置位停止标志
 			key := sessionKey(conn)
