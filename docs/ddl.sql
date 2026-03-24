@@ -47,7 +47,8 @@ CREATE TABLE chunk_info (
                             file_md5 VARCHAR(32) NOT NULL COMMENT '关联的文件MD5值',
                             chunk_index INT NOT NULL COMMENT '分块序号',
                             chunk_md5 VARCHAR(32) NOT NULL COMMENT '分块的MD5值',
-                            storage_path VARCHAR(255) NOT NULL COMMENT '分块在存储系统中的路径'
+                            storage_path VARCHAR(255) NOT NULL COMMENT '分块在存储系统中的路径',
+                            UNIQUE KEY uk_chunk_file_index (file_md5, chunk_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='文件分块信息表';
 
 

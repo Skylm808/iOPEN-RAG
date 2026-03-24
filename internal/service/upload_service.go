@@ -171,7 +171,7 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 		return nil, 0, err
 	}
 
-	// 2. 检查分片是否已上传 (Redis)
+	totalChunks := s.calculateTotalChunks(record.TotalSize)
 	isUploaded, err := s.uploadRepo.IsChunkUploaded(ctx, fileMD5, userID, chunkIndex)
 	if err != nil {
 		log.Errorf("[UploadChunk] 从Redis检查分片上传状态失败, error: %v", err)
@@ -179,12 +179,22 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 	}
 	if isUploaded {
 		log.Infof("[UploadChunk] 分片 %d 已上传过，跳过本次上传。文件MD5: %s", chunkIndex, fileMD5)
-		totalChunks := s.calculateTotalChunks(record.TotalSize)
 		uploadedIndexes, err := s.uploadRepo.GetUploadedChunksFromRedis(ctx, fileMD5, userID, totalChunks)
 		if err != nil {
 			return nil, 0, err
 		}
 		return uploadedIndexes, totalChunks, nil
+	}
+
+	// Redis 丢位时，优先复用已存在的 chunk_info 并回填 bitmap，避免重复上传。
+	repairedIndexes, repaired, err := s.tryRepairChunkUploadFromDB(ctx, fileMD5, userID, chunkIndex, totalChunks)
+	if err != nil {
+		log.Errorf("[UploadChunk] 从chunk_info修复分片上传状态失败, error: %v", err)
+		return nil, 0, err
+	}
+	if repaired {
+		log.Warnf("[UploadChunk] 检测到 Redis 未标记但 chunk_info 已存在，已回填上传标记。文件MD5: %s, 分片序号: %d", fileMD5, chunkIndex)
+		return repairedIndexes, totalChunks, nil
 	}
 
 	// 3. 将分片上传到 MinIO
@@ -203,8 +213,15 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 		StoragePath: objectName, // 保存存储路径
 	}
 	if err := s.uploadRepo.CreateChunkInfoRecord(chunkRecord); err != nil {
-		log.Errorf("[UploadChunk] 在数据库中创建分片记录失败, error: %v", err)
-		return nil, 0, err
+		if _, lookupErr := s.uploadRepo.GetChunkInfoRecord(fileMD5, chunkIndex); lookupErr == nil {
+			log.Warnf("[UploadChunk] 分片记录已存在，按幂等重试处理。文件MD5: %s, 分片序号: %d", fileMD5, chunkIndex)
+		} else if errors.Is(lookupErr, gorm.ErrRecordNotFound) {
+			log.Errorf("[UploadChunk] 在数据库中创建分片记录失败, error: %v", err)
+			return nil, 0, err
+		} else {
+			log.Errorf("[UploadChunk] 分片记录创建失败且无法确认现有记录, createErr: %v, lookupErr: %v", err, lookupErr)
+			return nil, 0, lookupErr
+		}
 	}
 
 	// 5. 在 Redis 中标记分片为已上传
@@ -214,7 +231,6 @@ func (s *uploadService) UploadChunk(ctx context.Context, fileMD5, fileName strin
 	}
 
 	// 6. 获取最新的已上传分片列表并计算总分片数
-	totalChunks := s.calculateTotalChunks(record.TotalSize)
 	uploadedIndexes, err := s.uploadRepo.GetUploadedChunksFromRedis(ctx, fileMD5, userID, totalChunks)
 	if err != nil {
 		log.Errorf("[UploadChunk] 上传成功后从Redis获取最新分片列表失败, error: %v", err)
@@ -242,8 +258,19 @@ func (s *uploadService) MergeChunks(ctx context.Context, fileMD5, fileName strin
 		return "", fmt.Errorf("failed to get uploaded chunks from redis: %w", err)
 	}
 	if len(uploadedIndexes) < totalChunks {
-		log.Warnf("[MergeChunks] 拒绝合并请求：分片未完全上传。文件MD5: %s, 期望分片数: %d, 实际分片数: %d", fileMD5, totalChunks, len(uploadedIndexes))
-		return "", fmt.Errorf("分片未全部上传，无法合并 (期望: %d, 实际: %d)", totalChunks, len(uploadedIndexes))
+		recoveredIndexes, dbChunkCount, repairErr := s.repairUploadMarksFromChunkInfo(ctx, fileMD5, userID, totalChunks)
+		if repairErr != nil {
+			log.Errorf("[MergeChunks] 从chunk_info修复Redis上传标记失败, error: %v", repairErr)
+			return "", fmt.Errorf("failed to repair uploaded chunks from chunk_info: %w", repairErr)
+		}
+		if dbChunkCount > len(uploadedIndexes) {
+			log.Warnf("[MergeChunks] Redis bitmap 不完整，已根据 chunk_info 回填上传标记。文件MD5: %s, Redis进度: %d/%d, DB进度: %d/%d", fileMD5, len(uploadedIndexes), totalChunks, dbChunkCount, totalChunks)
+		}
+		uploadedIndexes = recoveredIndexes
+		if len(uploadedIndexes) < totalChunks {
+			log.Warnf("[MergeChunks] 拒绝合并请求：分片未完全上传。文件MD5: %s, 期望分片数: %d, 实际分片数: %d", fileMD5, totalChunks, len(uploadedIndexes))
+			return "", fmt.Errorf("分片未全部上传，无法合并 (期望: %d, 实际: %d)", totalChunks, len(uploadedIndexes))
+		}
 	}
 
 	// 2. 根据分片数量选择合并策略
@@ -412,6 +439,47 @@ func (s *uploadService) FastUpload(ctx context.Context, fileMD5 string, userID u
 	}
 	log.Infof("[FastUpload] 秒传检查：文件记录已存在，状态为 %d。", record.Status)
 	return record.Status == 1, nil
+}
+
+func (s *uploadService) tryRepairChunkUploadFromDB(ctx context.Context, fileMD5 string, userID uint, chunkIndex int, totalChunks int) ([]int, bool, error) {
+	if _, err := s.uploadRepo.GetChunkInfoRecord(fileMD5, chunkIndex); err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, false, nil
+		}
+		return nil, false, err
+	}
+	if err := s.uploadRepo.MarkChunkUploaded(ctx, fileMD5, userID, chunkIndex); err != nil {
+		return nil, false, err
+	}
+	uploadedIndexes, err := s.uploadRepo.GetUploadedChunksFromRedis(ctx, fileMD5, userID, totalChunks)
+	if err != nil {
+		return nil, false, err
+	}
+	return uploadedIndexes, true, nil
+}
+
+func (s *uploadService) repairUploadMarksFromChunkInfo(ctx context.Context, fileMD5 string, userID uint, totalChunks int) ([]int, int, error) {
+	chunkRecords, err := s.uploadRepo.GetChunkInfoRecords(fileMD5)
+	if err != nil {
+		return nil, 0, err
+	}
+	uniqueIndexes := make(map[int]struct{}, len(chunkRecords))
+	for _, chunk := range chunkRecords {
+		if chunk.ChunkIndex < 0 || chunk.ChunkIndex >= totalChunks {
+			continue
+		}
+		uniqueIndexes[chunk.ChunkIndex] = struct{}{}
+	}
+	for chunkIndex := range uniqueIndexes {
+		if err := s.uploadRepo.MarkChunkUploaded(ctx, fileMD5, userID, chunkIndex); err != nil {
+			return nil, len(uniqueIndexes), err
+		}
+	}
+	uploadedIndexes, err := s.uploadRepo.GetUploadedChunksFromRedis(ctx, fileMD5, userID, totalChunks)
+	if err != nil {
+		return nil, len(uniqueIndexes), err
+	}
+	return uploadedIndexes, len(uniqueIndexes), nil
 }
 
 // calculateTotalChunks 根据文件总大小和默认分片大小计算总分片数。
