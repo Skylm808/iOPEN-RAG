@@ -16,7 +16,7 @@
 
 # Go workspace file
 go.work
-
+.gocache/
 # IDEs
 .idea/
 .vscode/
@@ -47,6 +47,7 @@ frontend/.env.*.local
 
 homepage/node_modules/
 homepage/dist/
+
 
 # ── AI 工具缓存 ───────────────────────────────────────────────────────────
 .claude/
